@@ -14,30 +14,11 @@
     <div id="root"></div>
     
     <script type="text/babel">
-        const { useState, useEffect } = React;
-        const { Users, FileText, CheckCircle, Clock, Plus, Eye, Download, Activity } = lucide;
+        const { useState } = React;
+        const { Users, FileText, CheckCircle, Clock, Plus, Eye, Activity } = lucide;
 
         const MULTASApp = () => {
-            const [activeTab, setActiveTab] = useState('input'); // 学生用として入力画面をデフォルトに
-            const [students, setStudents] = useState([
-                {
-                    name: '民谷健太郎',
-                    grade: '1年',
-                    progress: 5,
-                    day1: true, day2: true, day3: true, day4: true, day5: true,
-                    status: '🎉 完了',
-                    lastUpdate: '2025-07-01'
-                },
-                {
-                    name: '田中花子',
-                    grade: '2年',
-                    progress: 3,
-                    day1: true, day2: true, day3: true, day4: false, day5: false,
-                    status: '📝 進行中 (3/5)',
-                    lastUpdate: '2025-07-01'
-                }
-            ]);
-            
+            const [activeTab, setActiveTab] = useState('input');
             const [formData, setFormData] = useState({
                 studentName: '',
                 grade: '1年',
@@ -48,26 +29,11 @@
                 interaction: '',
                 photoDescription: ''
             });
-
-            const [reports] = useState([
-                {
-                    id: 1,
-                    studentName: '民谷健太郎',
-                    generatedDate: '2025-07-01 18:11:28',
-                    length: 1250,
-                    content: `## 実習概要\n民谷健太郎さんの5日間の臨床実習は、基礎的な医療現場での実践的な学習を中心に構成されました。段階的に医療チームとの連携や患者さんとの関わり方を学び、医学的知識と実践的スキルの両面で成長を遂げました。\n\n## 日別ハイライト\n**1日目（月曜日）**: 実習オリエンテーションと基本的な医療現場の見学を通じて、医療環境への適応を図りました。\n**2日目（火曜日）**: 患者さんとの初期的なコミュニケーションを経験し、医療コミュニケーションの重要性を実感しました。\n**3日目（水曜日）**: より具体的な医療手技の見学と基本的な診察技術について学習しました。\n**4日目（木曜日）**: チーム医療の重要性を理解し、多職種連携の実際を体験しました。\n**5日目（金曜日）**: 実習全体の振り返りと今後の学習課題の整理を行いました。\n\n## 総合的な学び\n実習を通じて、医学的知識の重要性とともに、患者さんとの信頼関係構築や医療チームとの効果的な連携が医療の質向上に不可欠であることを深く理解しました。また、継続的な学習の必要性と、実践的な経験の価値を実感することができました。\n\n## 今後の課題\n医学的知識のさらなる深化と、コミュニケーションスキルの向上が主要な課題として挙げられます。また、多職種連携における自身の役割を明確化し、より効果的なチーム医療への貢献方法を模索していく必要があります。\n\n## 感想・所感\n5日間の実習は、医学教育における実践的学習の重要性を改めて認識させる貴重な経験でした。理論と実践の架け橋となる臨床実習の価値を十分に理解し、今後の学習への強いモチベーションを得ることができました。`
-                }
-            ]);
-
-            const [selectedReport, setSelectedReport] = useState(null);
-            const [isSubmitting, setIsSubmitting] = useState(false);
             const [submissions, setSubmissions] = useState([]);
+            const [isSubmitting, setIsSubmitting] = useState(false);
 
             const handleInputChange = (field, value) => {
-                setFormData(prev => ({
-                    ...prev,
-                    [field]: value
-                }));
+                setFormData(prev => ({ ...prev, [field]: value }));
             };
 
             const handleSubmit = async () => {
@@ -77,81 +43,188 @@
                 }
 
                 setIsSubmitting(true);
-
-                try {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    const submission = {
-                        ...formData,
-                        timestamp: new Date().toLocaleString('ja-JP'),
-                        id: Date.now()
-                    };
-                    
-                    setSubmissions(prev => [...prev, submission]);
-                    
-                    alert(`📝 実習記録を提出しました！\n\n学生名: ${formData.studentName}\n実習日: ${formData.practiceDay}\n提出時刻: ${submission.timestamp}\n\n✅ βテスト版では画面上でのみ確認できます。\n本運用時はGoogle Apps Scriptで自動処理されます。`);
-                    
-                    setFormData({
-                        studentName: '',
-                        grade: '1年',
-                        practiceDay: '1日目（月曜日）',
-                        practiceContent: '',
-                        learning: '',
-                        questions: '',
-                        interaction: '',
-                        photoDescription: ''
-                    });
-
-                } catch (error) {
-                    alert('❌ エラーが発生しました: ' + error.message);
-                } finally {
-                    setIsSubmitting(false);
-                }
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                const submission = {
+                    ...formData,
+                    timestamp: new Date().toLocaleString('ja-JP'),
+                    id: Date.now()
+                };
+                
+                setSubmissions(prev => [...prev, submission]);
+                alert(`📝 実習記録を提出しました！\n\n学生名: ${formData.studentName}\n実習日: ${formData.practiceDay}\n提出時刻: ${submission.timestamp}`);
+                
+                setFormData({
+                    studentName: '',
+                    grade: '1年',
+                    practiceDay: '1日目（月曜日）',
+                    practiceContent: '',
+                    learning: '',
+                    questions: '',
+                    interaction: '',
+                    photoDescription: ''
+                });
+                setIsSubmitting(false);
             };
 
-            const getStatusBadge = (status) => {
-                if (status.includes('🎉')) {
-                    return (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            完了
-                        </span>
-                    );
-                }
-                return (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        <Clock className="w-3 h-3 mr-1" />
-                        進行中
-                    </span>
-                );
-            };
+            const renderInput = () => (
+                <div className="max-w-4xl mx-auto">
+                    <div className="bg-white rounded-lg shadow">
+                        <div className="px-6 py-4 border-b border-gray-200">
+                            <h2 className="text-lg font-medium text-gray-900">📝 実習記録入力</h2>
+                            <p className="text-sm text-gray-600 mt-1">
+                                日々の実習内容を記録してください。βテスト版では画面上で確認できます。
+                            </p>
+                        </div>
+                        
+                        <div className="p-6 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        学生名 <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="例: 田中太郎"
+                                        value={formData.studentName}
+                                        onChange={(e) => handleInputChange('studentName', e.target.value)}
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        学年 <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={formData.grade}
+                                        onChange={(e) => handleInputChange('grade', e.target.value)}
+                                    >
+                                        <option value="1年">1年</option>
+                                        <option value="2年">2年</option>
+                                        <option value="3年">3年</option>
+                                        <option value="4年">4年</option>
+                                        <option value="5年">5年</option>
+                                        <option value="6年">6年</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    実習日 <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={formData.practiceDay}
+                                    onChange={(e) => handleInputChange('practiceDay', e.target.value)}
+                                >
+                                    <option value="1日目（月曜日）">1日目（月曜日）</option>
+                                    <option value="2日目（火曜日）">2日目（火曜日）</option>
+                                    <option value="3日目（水曜日）">3日目（水曜日）</option>
+                                    <option value="4日目（木曜日）">4日目（木曜日）</option>
+                                    <option value="5日目（金曜日）">5日目（金曜日）</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    実習内容 <span className="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    rows={4}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="今日の実習で行った内容を具体的に記述してください..."
+                                    value={formData.practiceContent}
+                                    onChange={(e) => handleInputChange('practiceContent', e.target.value)}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    学び・気づき・体験の具体的記述 <span className="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    rows={4}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="実習を通じて学んだこと、気づいたこと、印象に残った体験を詳しく記述してください..."
+                                    value={formData.learning}
+                                    onChange={(e) => handleInputChange('learning', e.target.value)}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    疑問・今後調べたいこと
+                                </label>
+                                <textarea
+                                    rows={3}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="実習中に感じた疑問や、今後詳しく調べてみたいことがあれば記述してください..."
+                                    value={formData.questions}
+                                    onChange={(e) => handleInputChange('questions', e.target.value)}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    患者さん・スタッフとの関わり
+                                </label>
+                                <textarea
+                                    rows={3}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="患者さんやスタッフとのコミュニケーションで印象に残ったことがあれば記述してください..."
+                                    value={formData.interaction}
+                                    onChange={(e) => handleInputChange('interaction', e.target.value)}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    写真についての記述
+                                </label>
+                                <textarea
+                                    rows={3}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="撮影した写真がある場合、その内容や撮影理由を記述してください..."
+                                    value={formData.photoDescription}
+                                    onChange={(e) => handleInputChange('photoDescription', e.target.value)}
+                                />
+                            </div>
+
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={isSubmitting}
+                                    className={`bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition-colors duration-200 flex items-center ${
+                                        isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                                    }`}
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                            送信中...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            実習記録を提出
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
 
             const renderDashboard = () => (
                 <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="bg-white rounded-lg shadow p-6">
                             <div className="flex items-center">
                                 <Users className="w-8 h-8 text-blue-500" />
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">総学生数</p>
-                                    <p className="text-2xl font-bold text-gray-900">{students.length}</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <div className="flex items-center">
-                                <CheckCircle className="w-8 h-8 text-green-500" />
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">完了者</p>
-                                    <p className="text-2xl font-bold text-gray-900">1</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <div className="flex items-center">
-                                <Activity className="w-8 h-8 text-yellow-500" />
                                 <div className="ml-4">
                                     <p className="text-sm font-medium text-gray-600">βテスト提出</p>
                                     <p className="text-2xl font-bold text-gray-900">{submissions.length}</p>
@@ -161,76 +234,22 @@
                         
                         <div className="bg-white rounded-lg shadow p-6">
                             <div className="flex items-center">
-                                <FileText className="w-8 h-8 text-purple-500" />
+                                <CheckCircle className="w-8 h-8 text-green-500" />
                                 <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">生成報告書</p>
-                                    <p className="text-2xl font-bold text-gray-900">{reports.length}</p>
+                                    <p className="text-sm font-medium text-gray-600">システム状態</p>
+                                    <p className="text-xl font-bold text-green-600">正常動作</p>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow">
-                        <div className="px-6 py-4 border-b border-gray-200">
-                            <h2 className="text-lg font-medium text-gray-900">学生進捗状況</h2>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">学生名</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">学年</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">進捗</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">状況</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">実習日詳細</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {students.map((student, index) => (
-                                        <tr key={index} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                {student.name}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {student.grade}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div className="w-32 bg-gray-200 rounded-full h-2 mr-2">
-                                                        <div 
-                                                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                                            style={{ width: `${(student.progress / 5) * 100}%` }}
-                                                        ></div>
-                                                    </div>
-                                                    <span className="text-sm text-gray-600">
-                                                        {student.progress}/5
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {getStatusBadge(student.status)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex space-x-1">
-                                                    {[student.day1, student.day2, student.day3, student.day4, student.day5].map((completed, dayIndex) => (
-                                                        <div
-                                                            key={dayIndex}
-                                                            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                                                                completed 
-                                                                    ? 'bg-green-500 text-white' 
-                                                                    : 'bg-gray-200 text-gray-500'
-                                                            }`}
-                                                            title={`${dayIndex + 1}日目`}
-                                                        >
-                                                            {dayIndex + 1}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                        
+                        <div className="bg-white rounded-lg shadow p-6">
+                            <div className="flex items-center">
+                                <Activity className="w-8 h-8 text-purple-500" />
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-600">テスト段階</p>
+                                    <p className="text-xl font-bold text-purple-600">βテスト</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -268,241 +287,6 @@
                                         ))}
                                     </tbody>
                                 </table>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-
-            const renderInput = () => (
-                <div className="max-w-4xl mx-auto">
-                    <div className="bg-white rounded-lg shadow">
-                        <div className="px-6 py-4 border-b border-gray-200">
-                            <h2 className="text-lg font-medium text-gray-900">📝 実習記録入力</h2>
-                            <p className="text-sm text-gray-600 mt-1">
-                                日々の実習内容を記録してください。βテスト版では画面上で確認できます。
-                            </p>
-                        </div>
-                        
-                        <div className="p-6 space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        学生名 <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="例: 田中太郎"
-                                        value={formData.studentName}
-                                        onChange={(e) => handleInputChange('studentName', e.target.value)}
-                                    />
-                                </div>
-                                
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        学年 <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        value={formData.grade}
-                                        onChange={(e) => handleInputChange('grade', e.target.value)}
-                                    >
-                                        <option value="1年">1年</option>
-                                        <option value="2年">2年</option>
-                                        <option value="3年">3年</option>
-                                        <option value="4年">4年</option>
-                                        <option value="5年">5年</option>
-                                        <option value="6年">6年</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    実習日 <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    value={formData.practiceDay}
-                                    onChange={(e) => handleInputChange('practiceDay', e.target.value)}
-                                >
-                                    <option value="1日目（月曜日）">1日目（月曜日）</option>
-                                    <option value="2日目（火曜日）">2日目（火曜日）</option>
-                                    <option value="3日目（水曜日）">3日目（水曜日）</option>
-                                    <option value="4日目（木曜日）">4日目（木曜日）</option>
-                                    <option value="5日目（金曜日）">5日目（金曜日）</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    実習内容 <span className="text-red-500">*</span>
-                                </label>
-                                <textarea
-                                    rows={4}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="今日の実習で行った内容を具体的に記述してください..."
-                                    value={formData.practiceContent}
-                                    onChange={(e) => handleInputChange('practiceContent', e.target.value)}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    学び・気づき・体験の具体的記述 <span className="text-red-500">*</span>
-                                </label>
-                                <textarea
-                                    rows={4}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="実習を通じて学んだこと、気づいたこと、印象に残った体験を詳しく記述してください..."
-                                    value={formData.learning}
-                                    onChange={(e) => handleInputChange('learning', e.target.value)}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    疑問・今後調べたいこと
-                                </label>
-                                <textarea
-                                    rows={3}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="実習中に感じた疑問や、今後詳しく調べてみたいことがあれば記述してください..."
-                                    value={formData.questions}
-                                    onChange={(e) => handleInputChange('questions', e.target.value)}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    患者さん・スタッフとの関わり
-                                </label>
-                                <textarea
-                                    rows={3}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="患者さんやスタッフとのコミュニケーションで印象に残ったことがあれば記述してください..."
-                                    value={formData.interaction}
-                                    onChange={(e) => handleInputChange('interaction', e.target.value)}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    写真についての記述
-                                </label>
-                                <textarea
-                                    rows={3}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="撮影した写真がある場合、その内容や撮影理由を記述してください..."
-                                    value={formData.photoDescription}
-                                    onChange={(e) => handleInputChange('photoDescription', e.target.value)}
-                                />
-                            </div>
-
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={handleSubmit}
-                                    disabled={isSubmitting}
-                                    className={`bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition-colors duration-200 flex items-center ${
-                                        isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                                    }`}
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                            送信中...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            実習記録を提出
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-
-            const renderReports = () => (
-                <div className="space-y-6">
-                    <div className="bg-white rounded-lg shadow">
-                        <div className="px-6 py-4 border-b border-gray-200">
-                            <h2 className="text-lg font-medium text-gray-900">📋 生成済み報告書</h2>
-                            <p className="text-sm text-gray-600 mt-1">
-                                5日間の実習完了者のAI生成報告書（デモ版）
-                            </p>
-                        </div>
-                        
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">学生名</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">生成日時</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">文字数</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {reports.map((report) => (
-                                        <tr key={report.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                {report.studentName}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {report.generatedDate}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {report.length}文字
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                                <button
-                                                    onClick={() => setSelectedReport(report)}
-                                                    className="text-blue-600 hover:text-blue-900 inline-flex items-center"
-                                                >
-                                                    <Eye className="w-4 h-4 mr-1" />
-                                                    表示
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    {selectedReport && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
-                                <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                                    <h3 className="text-lg font-medium text-gray-900">
-                                        {selectedReport.studentName}さんの実習報告書（AI生成デモ）
-                                    </h3>
-                                    <button
-                                        onClick={() => setSelectedReport(null)}
-                                        className="text-gray-400 hover:text-gray-600 text-xl"
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                                <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-                                    <div className="prose max-w-none">
-                                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                                            {selectedReport.content}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-                                    <button
-                                        onClick={() => setSelectedReport(null)}
-                                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                    >
-                                        閉じる
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     )}
@@ -557,26 +341,14 @@
                                     <Activity className="w-4 h-4 inline mr-2" />
                                     管理者画面
                                 </button>
-                                <button
-                                    onClick={() => setActiveTab('reports')}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                                        activeTab === 'reports'
-                                            ? 'border-blue-500 text-blue-600'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }`}
-                                >
-                                    <FileText className="w-4 h-4 inline mr-2" />
-                                    AI報告書デモ
-                                </button>
                             </div>
                         </div>
                     </nav>
 
                     <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                         <div className="px-4 py-6 sm:px-0">
-                            {activeTab === 'dashboard' && renderDashboard()}
                             {activeTab === 'input' && renderInput()}
-                            {activeTab === 'reports' && renderReports()}
+                            {activeTab === 'dashboard' && renderDashboard()}
                         </div>
                     </main>
 
