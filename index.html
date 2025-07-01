@@ -4,103 +4,481 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MULTAS臨床実習システム βテスト</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8fafc;
+            line-height: 1.6;
+            color: #334155;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* ヘッダー */
+        .header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+        
+        .logo h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        
+        .logo p {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .last-update {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        
+        .beta-badge {
+            width: 32px;
+            height: 32px;
+            background: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+        
+        /* ナビゲーション */
+        .nav {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .nav-content {
+            display: flex;
+            gap: 0;
+        }
+        
+        .nav-tab {
+            padding: 16px 24px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-tab:hover {
+            color: #374151;
+            border-bottom-color: #d1d5db;
+        }
+        
+        .nav-tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        
+        .nav-icon {
+            width: 16px;
+            height: 16px;
+        }
+        
+        /* メインコンテンツ */
+        .main {
+            padding: 24px 0;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* 成功メッセージ */
+        .success-alert {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            color: #166534;
+            font-weight: 500;
+        }
+        
+        /* カード */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        
+        .card-description {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        
+        .card-content {
+            padding: 24px;
+        }
+        
+        /* フォーム */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        
+        @media (min-width: 768px) {
+            .form-grid-2 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+        
+        .required {
+            color: #ef4444;
+        }
+        
+        .form-input,
+        .form-select,
+        .form-textarea {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+            background: white;
+        }
+        
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        /* ボタン */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        
+        .btn-primary:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+        
+        .btn-full {
+            width: 100%;
+        }
+        
+        /* ローディング */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 統計カード */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .stat-icon.blue { background: #dbeafe; color: #3b82f6; }
+        .stat-icon.green { background: #dcfce7; color: #16a34a; }
+        .stat-icon.purple { background: #f3e8ff; color: #9333ea; }
+        .stat-icon.yellow { background: #fef3c7; color: #d97706; }
+        
+        .stat-content h3 {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .stat-content p {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        
+        /* テーブル */
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .table tr:hover {
+            background: #f8fafc;
+        }
+        
+        /* フッター */
+        .footer {
+            background: #f0f9ff;
+            border-top: 1px solid #bae6fd;
+            padding: 16px 0;
+            margin-top: 48px;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .footer-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .footer-badge {
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .footer-text {
+            font-size: 0.875rem;
+            color: #1e40af;
+        }
+        
+        .footer-brand {
+            font-size: 0.875rem;
+            color: #2563eb;
+            font-weight: 500;
+        }
+        
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            
+            .nav-content {
+                flex-direction: column;
+            }
+            
+            .nav-tab {
+                text-align: center;
+                border-bottom: none;
+                border-right: 3px solid transparent;
+            }
+            
+            .nav-tab.active {
+                border-right-color: #3b82f6;
+                border-bottom-color: transparent;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
-    
-    <script type="text/babel">
-        const { useState } = React;
-        const { Users, FileText, CheckCircle, Clock, Plus, Eye, Activity } = lucide;
+    <!-- ヘッダー -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>MULTAS</h1>
+                    <p>医学科なつやすみ臨床実習システム (βテスト版)</p>
+                </div>
+                <div class="header-info">
+                    <span class="last-update">最終更新: 2025年7月1日</span>
+                    <div class="beta-badge">β</div>
+                </div>
+            </div>
+        </div>
+    </header>
 
-        const MULTASApp = () => {
-            const [activeTab, setActiveTab] = useState('input');
-            const [formData, setFormData] = useState({
-                studentName: '',
-                grade: '1年',
-                practiceDay: '1日目（月曜日）',
-                practiceContent: '',
-                learning: '',
-                questions: '',
-                interaction: '',
-                photoDescription: ''
-            });
-            const [submissions, setSubmissions] = useState([]);
-            const [isSubmitting, setIsSubmitting] = useState(false);
+    <!-- ナビゲーション -->
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-content">
+                <div class="nav-tab active" onclick="showTab('input')">
+                    <span class="nav-icon">📝</span>
+                    実習記録入力
+                </div>
+                <div class="nav-tab" onclick="showTab('dashboard')">
+                    <span class="nav-icon">📊</span>
+                    管理者画面
+                </div>
+            </div>
+        </div>
+    </nav>
 
-            const handleInputChange = (field, value) => {
-                setFormData(prev => ({ ...prev, [field]: value }));
-            };
+    <!-- メインコンテンツ -->
+    <main class="main">
+        <div class="container">
+            <!-- 実習記録入力タブ -->
+            <div id="input" class="tab-content active">
+                <div class="success-alert">
+                    ✅ MULTASシステムが正常に動作しています！βテスト用入力フォームです。
+                </div>
 
-            const handleSubmit = async () => {
-                if (!formData.studentName || !formData.practiceContent || !formData.learning) {
-                    alert('⚠️ 必須項目（学生名、実習内容、学び・気づき）を入力してください');
-                    return;
-                }
-
-                setIsSubmitting(true);
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                const submission = {
-                    ...formData,
-                    timestamp: new Date().toLocaleString('ja-JP'),
-                    id: Date.now()
-                };
-                
-                setSubmissions(prev => [...prev, submission]);
-                alert(`📝 実習記録を提出しました！\n\n学生名: ${formData.studentName}\n実習日: ${formData.practiceDay}\n提出時刻: ${submission.timestamp}`);
-                
-                setFormData({
-                    studentName: '',
-                    grade: '1年',
-                    practiceDay: '1日目（月曜日）',
-                    practiceContent: '',
-                    learning: '',
-                    questions: '',
-                    interaction: '',
-                    photoDescription: ''
-                });
-                setIsSubmitting(false);
-            };
-
-            const renderInput = () => (
-                <div className="max-w-4xl mx-auto">
-                    <div className="bg-white rounded-lg shadow">
-                        <div className="px-6 py-4 border-b border-gray-200">
-                            <h2 className="text-lg font-medium text-gray-900">📝 実習記録入力</h2>
-                            <p className="text-sm text-gray-600 mt-1">
-                                日々の実習内容を記録してください。βテスト版では画面上で確認できます。
-                            </p>
-                        </div>
-                        
-                        <div className="p-6 space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        学生名 <span className="text-red-500">*</span>
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📝 実習記録入力</h2>
+                        <p class="card-description">
+                            日々の実習内容を記録してください。βテスト版では入力テストを行い、本運用時にGoogle Apps Scriptで自動処理されます。
+                        </p>
+                    </div>
+                    <div class="card-content">
+                        <div class="form-grid">
+                            <div class="form-grid form-grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        学生名 <span class="required">*</span>
                                     </label>
-                                    <input
-                                        type="text"
-                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="例: 田中太郎"
-                                        value={formData.studentName}
-                                        onChange={(e) => handleInputChange('studentName', e.target.value)}
-                                    />
+                                    <input type="text" id="studentName" class="form-input" placeholder="例: 田中太郎">
                                 </div>
                                 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        学年 <span className="text-red-500">*</span>
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        学年 <span class="required">*</span>
                                     </label>
-                                    <select
-                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        value={formData.grade}
-                                        onChange={(e) => handleInputChange('grade', e.target.value)}
-                                    >
+                                    <select id="grade" class="form-select">
                                         <option value="1年">1年</option>
                                         <option value="2年">2年</option>
                                         <option value="3年">3年</option>
@@ -111,15 +489,11 @@
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    実習日 <span className="text-red-500">*</span>
+                            <div class="form-group">
+                                <label class="form-label">
+                                    実習日 <span class="required">*</span>
                                 </label>
-                                <select
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    value={formData.practiceDay}
-                                    onChange={(e) => handleInputChange('practiceDay', e.target.value)}
-                                >
+                                <select id="practiceDay" class="form-select">
                                     <option value="1日目（月曜日）">1日目（月曜日）</option>
                                     <option value="2日目（火曜日）">2日目（火曜日）</option>
                                     <option value="3日目（水曜日）">3日目（水曜日）</option>
@@ -128,252 +502,277 @@
                                 </select>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    実習内容 <span className="text-red-500">*</span>
+                            <div class="form-group">
+                                <label class="form-label">
+                                    実習内容 <span class="required">*</span>
                                 </label>
-                                <textarea
-                                    rows={4}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="今日の実習で行った内容を具体的に記述してください..."
-                                    value={formData.practiceContent}
-                                    onChange={(e) => handleInputChange('practiceContent', e.target.value)}
-                                />
+                                <textarea id="practiceContent" class="form-textarea" rows="4" placeholder="今日の実習で行った内容を具体的に記述してください..."></textarea>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    学び・気づき・体験の具体的記述 <span className="text-red-500">*</span>
+                            <div class="form-group">
+                                <label class="form-label">
+                                    学び・気づき・体験の具体的記述 <span class="required">*</span>
                                 </label>
-                                <textarea
-                                    rows={4}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="実習を通じて学んだこと、気づいたこと、印象に残った体験を詳しく記述してください..."
-                                    value={formData.learning}
-                                    onChange={(e) => handleInputChange('learning', e.target.value)}
-                                />
+                                <textarea id="learning" class="form-textarea" rows="4" placeholder="実習を通じて学んだこと、気づいたこと、印象に残った体験を詳しく記述してください..."></textarea>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    疑問・今後調べたいこと
-                                </label>
-                                <textarea
-                                    rows={3}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="実習中に感じた疑問や、今後詳しく調べてみたいことがあれば記述してください..."
-                                    value={formData.questions}
-                                    onChange={(e) => handleInputChange('questions', e.target.value)}
-                                />
+                            <div class="form-group">
+                                <label class="form-label">疑問・今後調べたいこと</label>
+                                <textarea id="questions" class="form-textarea" rows="3" placeholder="実習中に感じた疑問や、今後詳しく調べてみたいことがあれば記述してください..."></textarea>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    患者さん・スタッフとの関わり
-                                </label>
-                                <textarea
-                                    rows={3}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="患者さんやスタッフとのコミュニケーションで印象に残ったことがあれば記述してください..."
-                                    value={formData.interaction}
-                                    onChange={(e) => handleInputChange('interaction', e.target.value)}
-                                />
+                            <div class="form-group">
+                                <label class="form-label">患者さん・スタッフとの関わり</label>
+                                <textarea id="interaction" class="form-textarea" rows="3" placeholder="患者さんやスタッフとのコミュニケーションで印象に残ったことがあれば記述してください..."></textarea>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    写真についての記述
-                                </label>
-                                <textarea
-                                    rows={3}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="撮影した写真がある場合、その内容や撮影理由を記述してください..."
-                                    value={formData.photoDescription}
-                                    onChange={(e) => handleInputChange('photoDescription', e.target.value)}
-                                />
+                            <div class="form-group">
+                                <label class="form-label">写真についての記述</label>
+                                <textarea id="photoDescription" class="form-textarea" rows="3" placeholder="撮影した写真がある場合、その内容や撮影理由を記述してください..."></textarea>
                             </div>
 
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={handleSubmit}
-                                    disabled={isSubmitting}
-                                    className={`bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition-colors duration-200 flex items-center ${
-                                        isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                                    }`}
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                            送信中...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            実習記録を提出
-                                        </>
-                                    )}
-                                </button>
-                            </div>
+                            <button id="submitBtn" class="btn btn-primary btn-full" onclick="submitForm()">
+                                <span id="submitText">📝 実習記録を提出</span>
+                                <div id="submitSpinner" class="spinner" style="display: none;"></div>
+                            </button>
                         </div>
                     </div>
                 </div>
-            );
+            </div>
 
-            const renderDashboard = () => (
-                <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <div className="flex items-center">
-                                <Users className="w-8 h-8 text-blue-500" />
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">βテスト提出</p>
-                                    <p className="text-2xl font-bold text-gray-900">{submissions.length}</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <div className="flex items-center">
-                                <CheckCircle className="w-8 h-8 text-green-500" />
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">システム状態</p>
-                                    <p className="text-xl font-bold text-green-600">正常動作</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <div className="flex items-center">
-                                <Activity className="w-8 h-8 text-purple-500" />
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">テスト段階</p>
-                                    <p className="text-xl font-bold text-purple-600">βテスト</p>
-                                </div>
-                            </div>
+            <!-- 管理者画面タブ -->
+            <div id="dashboard" class="tab-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">👥</div>
+                        <div class="stat-content">
+                            <h3>βテスト提出</h3>
+                            <p id="submissionCount">0</p>
                         </div>
                     </div>
-
-                    {submissions.length > 0 && (
-                        <div className="bg-white rounded-lg shadow">
-                            <div className="px-6 py-4 border-b border-gray-200">
-                                <h2 className="text-lg font-medium text-gray-900">βテスト提出記録</h2>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">学生名</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">実習日</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">提出時刻</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">実習内容</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {submissions.map((submission) => (
-                                            <tr key={submission.id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                    {submission.studentName}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {submission.practiceDay}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {submission.timestamp}
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                                                    {submission.practiceContent}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">✅</div>
+                        <div class="stat-content">
+                            <h3>システム状態</h3>
+                            <p style="font-size: 1.25rem;">正常動作</p>
                         </div>
-                    )}
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">🚀</div>
+                        <div class="stat-content">
+                            <h3>テスト段階</h3>
+                            <p style="font-size: 1.25rem;">βテスト</p>
+                        </div>
+                    </div>
                 </div>
-            );
 
-            return (
-                <div className="min-h-screen bg-gray-100">
-                    <header className="bg-white shadow">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="flex justify-between items-center py-6">
-                                <div className="flex items-center">
-                                    <div className="flex-shrink-0">
-                                        <h1 className="text-2xl font-bold text-gray-900">MULTAS</h1>
-                                        <p className="text-sm text-gray-600">医学科なつやすみ臨床実習システム (βテスト版)</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center space-x-4">
-                                    <span className="text-sm text-gray-500">
-                                        最終更新: 2025年7月1日
-                                    </span>
-                                    <div className="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                        <span className="text-white font-medium text-sm">β</span>
-                                    </div>
-                                </div>
-                            </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📊 システム状況</h2>
+                        <p class="card-description">βテスト中の管理者機能です。</p>
+                    </div>
+                    <div class="card-content">
+                        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 24px;">
+                            <h3 style="margin-bottom: 12px; color: #374151;">システム情報</h3>
+                            <p style="margin-bottom: 8px;">✅ βテスト版が正常に動作中</p>
+                            <p style="margin-bottom: 8px;">🔄 本運用時はGoogle Apps Script連携でリアルタイム処理</p>
+                            <p style="margin-bottom: 8px;">🤖 AI報告書生成機能は本運用時に有効化</p>
+                            <p>📱 スマートフォン対応済み</p>
                         </div>
-                    </header>
-
-                    <nav className="bg-white shadow-sm border-b">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="flex space-x-8">
-                                <button
-                                    onClick={() => setActiveTab('input')}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                                        activeTab === 'input'
-                                            ? 'border-blue-500 text-blue-600'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }`}
-                                >
-                                    <Plus className="w-4 h-4 inline mr-2" />
-                                    実習記録入力
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('dashboard')}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                                        activeTab === 'dashboard'
-                                            ? 'border-blue-500 text-blue-600'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }`}
-                                >
-                                    <Activity className="w-4 h-4 inline mr-2" />
-                                    管理者画面
-                                </button>
-                            </div>
-                        </div>
-                    </nav>
-
-                    <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                        <div className="px-4 py-6 sm:px-0">
-                            {activeTab === 'input' && renderInput()}
-                            {activeTab === 'dashboard' && renderDashboard()}
-                        </div>
-                    </main>
-
-                    <footer className="bg-blue-50 border-t border-blue-200">
-                        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        βテスト版
-                                    </span>
-                                    <p className="ml-3 text-sm text-blue-700">
-                                        フォーム入力テスト用です。実際のデータ保存はGoogle Apps Script連携で実現されます。
-                                    </p>
-                                </div>
-                                <div className="text-sm text-blue-600">
-                                    MULTAS 2025
-                                </div>
-                            </div>
-                        </div>
-                    </footer>
+                    </div>
                 </div>
-            );
-        };
 
-        ReactDOM.render(<MULTASApp />, document.getElementById('root'));
+                <div id="submissionsTable" class="card" style="display: none;">
+                    <div class="card-header">
+                        <h2 class="card-title">βテスト提出記録</h2>
+                        <p class="card-description">提出されたデータの一覧です。</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>学生名</th>
+                                        <th>学年</th>
+                                        <th>実習日</th>
+                                        <th>提出時刻</th>
+                                        <th>実習内容（抜粋）</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="submissionsTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <span class="footer-badge">βテスト版</span>
+                    <span class="footer-text">
+                        フォーム入力テスト用です。実際のデータ保存はGoogle Apps Script連携で実現されます。
+                    </span>
+                </div>
+                <div class="footer-brand">MULTAS 2025</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // グローバル変数
+        let submissions = [];
+        let isSubmitting = false;
+
+        // タブ切り替え
+        function showTab(tabName) {
+            // タブボタンの状態更新
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // タブコンテンツの表示切り替え
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // フォーム送信
+        function submitForm() {
+            if (isSubmitting) return;
+
+            const studentName = document.getElementById('studentName').value.trim();
+            const practiceContent = document.getElementById('practiceContent').value.trim();
+            const learning = document.getElementById('learning').value.trim();
+
+            // バリデーション
+            if (!studentName || !practiceContent || !learning) {
+                alert('⚠️ 必須項目を入力してください\n\n必須項目:\n• 学生名\n• 実習内容\n• 学び・気づき・体験の具体的記述');
+                return;
+            }
+
+            // 送信開始
+            isSubmitting = true;
+            updateSubmitButton(true);
+
+            // 送信データ作成
+            const submission = {
+                id: Date.now(),
+                studentName: studentName,
+                grade: document.getElementById('grade').value,
+                practiceDay: document.getElementById('practiceDay').value,
+                practiceContent: practiceContent,
+                learning: learning,
+                questions: document.getElementById('questions').value.trim(),
+                interaction: document.getElementById('interaction').value.trim(),
+                photoDescription: document.getElementById('photoDescription').value.trim(),
+                timestamp: new Date().toLocaleString('ja-JP', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                })
+            };
+
+            // 模擬的な送信処理
+            setTimeout(() => {
+                submissions.push(submission);
+                updateSubmissionCount();
+                updateSubmissionsTable();
+
+                // 成功メッセージ
+                alert(`📝 実習記録を提出しました！\n\n` +
+                      `学生名: ${submission.studentName}\n` +
+                      `実習日: ${submission.practiceDay}\n` +
+                      `提出時刻: ${submission.timestamp}\n\n` +
+                      `✅ βテスト版では画面上でのみ確認できます。\n` +
+                      `本運用時はGoogle Apps Scriptで自動処理され、進捗管理とAI報告書生成が行われます。`);
+
+                // フォームリセット
+                resetForm();
+                
+                // 送信終了
+                isSubmitting = false;
+                updateSubmitButton(false);
+            }, 1500);
+        }
+
+        // 送信ボタンの状態更新
+        function updateSubmitButton(loading) {
+            const btn = document.getElementById('submitBtn');
+            const text = document.getElementById('submitText');
+            const spinner = document.getElementById('submitSpinner');
+
+            if (loading) {
+                btn.disabled = true;
+                text.style.display = 'none';
+                spinner.style.display = 'block';
+                btn.innerHTML = '<div class="spinner"></div> 送信中...';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '📝 実習記録を提出';
+            }
+        }
+
+        // フォームリセット
+        function resetForm() {
+            document.getElementById('studentName').value = '';
+            document.getElementById('practiceContent').value = '';
+            document.getElementById('learning').value = '';
+            document.getElementById('questions').value = '';
+            document.getElementById('interaction').value = '';
+            document.getElementById('photoDescription').value = '';
+            document.getElementById('grade').value = '1年';
+            document.getElementById('practiceDay').value = '1日目（月曜日）';
+        }
+
+        // 提出数更新
+        function updateSubmissionCount() {
+            document.getElementById('submissionCount').textContent = submissions.length;
+        }
+
+        // 提出記録テーブル更新
+        function updateSubmissionsTable() {
+            const table = document.getElementById('submissionsTable');
+            const tbody = document.getElementById('submissionsTableBody');
+
+            if (submissions.length === 0) {
+                table.style.display = 'none';
+                return;
+            }
+
+            table.style.display = 'block';
+            tbody.innerHTML = '';
+
+            submissions.forEach(submission => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-weight: 600;">${submission.studentName}</td>
+                    <td>${submission.grade}</td>
+                    <td>${submission.practiceDay}</td>
+                    <td style="font-size: 0.875rem; color: #64748b;">${submission.timestamp}</td>
+                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${submission.practiceContent.substring(0, 50)}${submission.practiceContent.length > 50 ? '...' : ''}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSubmissionCount();
+            console.log('✅ MULTASシステムが正常に初期化されました');
+        });
     </script>
 </body>
 </html>
