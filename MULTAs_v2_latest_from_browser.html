@@ -722,6 +722,9 @@
             <!-- モニター3用統計 -->
             <div id="stats-monitor3" class="stats-display" style="display: none;">
                 <div class="report-actions">
+                    <button class="btn-secondary" onclick="previousDay()">
+                        ⬅️ 前の日へ
+                    </button>
                     <button class="btn-secondary" onclick="generateDailyReport()">
                         🤖 レポート生成
                     </button>
@@ -786,8 +789,7 @@
                 <input type="text" id="studentName" placeholder="山田太郎" value="テスト学生">
             </div>
             <div class="experience-input" style="position: relative;">
-                <label for="experienceText">実習体験・気づき</label>
-                <textarea id="experienceText" placeholder="今日の実習で学んだこと、気づいたこと、感じたことを記録..."></textarea>
+                <textarea id="experienceText" placeholder="実習で体験したことを記録… ※患者の個人情報は入力しない"></textarea>
                 <button type="button" class="submit-btn" onclick="submitExperience()" title="送信">
                     <span id="submitText">✈️</span>
                     <span id="submitLoading" style="display: none;">
@@ -1191,6 +1193,22 @@
         }
 
         // === 次の日へ進む ===
+        // === 前の日へ機能 ===
+        function previousDay() {
+            const currentDayElement = document.getElementById('currentDay');
+            if (currentDayElement) {
+                const currentDay = parseInt(currentDayElement.textContent) || 1;
+                if (currentDay > 1) {
+                    currentDayElement.textContent = currentDay - 1;
+                    showStatus(`Day ${currentDay - 1}に戻りました`, 'success');
+                    // 表示を更新
+                    updateAllViews();
+                } else {
+                    showStatus('これ以上前の日には戻れません', 'error');
+                }
+            }
+        }
+
         async function advanceDay() {
             const studentName = document.getElementById('studentName').value.trim();
             
