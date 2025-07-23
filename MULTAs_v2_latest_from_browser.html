@@ -394,25 +394,36 @@
             height: 60px;
             min-height: 60px;
             max-height: 120px;
+            padding-right: 60px;
         }
 
         .submit-btn {
-            width: 100%;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 45px;
+            height: 45px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 1rem;
+            border-radius: 50%;
+            font-size: 1.4rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-weight: 600;
-            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            z-index: 10;
         }
 
         .submit-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.95);
         }
 
         .submit-btn:disabled {
@@ -743,18 +754,17 @@
                 <label for="studentName">学生名</label>
                 <input type="text" id="studentName" placeholder="山田太郎" value="テスト学生">
             </div>
-            <div class="experience-input">
+            <div class="experience-input" style="position: relative;">
                 <label for="experienceText">実習体験・気づき</label>
                 <textarea id="experienceText" placeholder="今日の実習で学んだこと、気づいたこと、感じたことを記録..."></textarea>
+                <button type="button" class="submit-btn" onclick="submitExperience()" title="送信">
+                    <span id="submitText">✈️</span>
+                    <span id="submitLoading" style="display: none;">
+                        <span class="loading"></span>
+                    </span>
+                </button>
             </div>
         </div>
-
-        <button type="button" class="submit-btn" onclick="submitExperience()">
-            <span id="submitText">📤 記録を保存</span>
-            <span id="submitLoading" style="display: none;">
-                <span class="loading"></span> 処理中...
-            </span>
-        </button>
 
         <div id="statusMessage"></div>
     </div>
@@ -810,7 +820,7 @@
 
                 records.unshift(localRecord);
                 updateAllViews();
-                showStatus('✅ 記録を保存しました！', 'success');
+                showStatus('✅ 送信しました！', 'success');
 
                 // フォームをクリア
                 document.getElementById('experienceText').value = '';
