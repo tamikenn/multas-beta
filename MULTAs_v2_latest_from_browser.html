@@ -498,10 +498,6 @@
             margin-bottom: 10px;
         }
 
-        .student-name-input {
-            flex: 0 0 120px;
-        }
-
         .experience-input {
             flex: 1;
         }
@@ -699,9 +695,6 @@
                 gap: 5px;
             }
 
-            .student-name-input {
-                flex: 1;
-            }
 
             .stats-grid {
                 gap: 4px;
@@ -908,10 +901,6 @@
     <!-- ボトム入力フォーム -->
     <div class="bottom-input">
         <div class="input-row">
-            <div class="student-name-input">
-                <label for="studentName">学生名</label>
-                <input type="text" id="studentName" placeholder="山田太郎" value="テスト学生">
-            </div>
             <div class="experience-input" style="position: relative;">
                 <textarea id="experienceText" placeholder="実習で体験したことを記録… ※患者の個人情報は入力しない"></textarea>
                 <button type="button" class="submit-btn" onclick="submitExperience()" title="送信">
@@ -948,11 +937,10 @@
 
         // === 体験記録送信 ===
         async function submitExperience() {
-            const studentName = document.getElementById('studentName').value.trim();
             const experienceText = document.getElementById('experienceText').value.trim();
             
-            if (!studentName || !experienceText) {
-                showStatus('学生名と体験内容を入力してください。', 'error');
+            if (!experienceText) {
+                showStatus('体験内容を入力してください。', 'error');
                 return;
             }
 
@@ -969,7 +957,6 @@
                 // ローカル処理で即座に表示（v1モジュール）
                 const localRecord = {
                     id: ++recordIdCounter,
-                    studentName: studentName,
                     originalText: experienceText,
                     timestamp: new Date(),
                     day: currentDay, // 現在の日付を記録
