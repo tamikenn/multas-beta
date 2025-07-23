@@ -365,8 +365,15 @@
             box-shadow: 0 3px 8px rgba(0,0,0,0.2);
         }
 
-        .btn-advance {
-            background: #17a2b8;
+        .btn-advance,
+        .btn-previous {
+            background: #90EE90;
+            color: #2d5a2d;
+        }
+
+        .btn-advance:hover,
+        .btn-previous:hover {
+            background: #7dd87d;
         }
 
         /* === ボトム入力フォーム === */
@@ -722,7 +729,7 @@
             <!-- モニター3用統計 -->
             <div id="stats-monitor3" class="stats-display" style="display: none;">
                 <div class="report-actions">
-                    <button class="btn-secondary" onclick="previousDay()">
+                    <button class="btn-secondary btn-previous" onclick="previousDay()">
                         ⬅️ 前の日へ
                     </button>
                     <button class="btn-secondary" onclick="generateDailyReport()">
