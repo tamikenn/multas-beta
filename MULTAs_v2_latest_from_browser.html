@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MULTAs - 医学実習レポート自動生成システム</title>
+    <style>
+        /* === ベーススタイル === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        /* === ヘッダー === */
+        .header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            text-align: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        /* === モニター切り替えタブ === */
+        .monitor-tabs {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
+        }
+
+        .monitor-tab {
+            flex: 1;
+            padding: 12px 8px;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .monitor-tab:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .monitor-tab.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-bottom-color: #ffeb3b;
+            font-weight: bold;
+        }
+
+        /* === メインコンテンツエリア === */
+        .main-content {
+            flex: 1;
+            padding: 0;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* === 統計固定エリア === */
+        .monitor-stats {
+            background: white;
+            padding: 12px 20px 8px;
+            border-bottom: 1px solid #f0f0f0;
+            flex-shrink: 0;
+        }
+
+        /* === スクロール可能コンテンツ === */
+        .monitor-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 20px;
+            min-height: 0;
+        }
+
+        /* === モニター表示 === */
+        .monitor {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        .monitor.active {
+            display: flex;
+        }
+
+        .monitor h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 6px;
+            margin: 0 0 15px 0;
+        }
+
+        /* === 統計カード === */
+        .stats-grid {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 0;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .stat-card {
+            background: rgba(102, 126, 234, 0.03);
+            border-radius: 5px;
+            padding: 4px 8px;
+            text-align: center;
+            border: 1px solid rgba(102, 126, 234, 0.08);
+            flex: 1;
+            min-width: 60px;
+            max-width: 80px;
+        }
+
+        .stat-number {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: rgba(102, 126, 234, 0.7);
+            margin-bottom: 1px;
+        }
+
+        .stat-label {
+            color: #999;
+            font-size: 0.65rem;
+            line-height: 1.1;
+        }
+
+        /* === 記録アイテム === */
+        .record-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 15px;
+            border-left: 5px solid #667eea;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .record-item:hover {
+            transform: translateX(3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-left-color: #5a67d8;
+        }
+
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .record-timestamp {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .record-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .record-btn {
+            padding: 5px 9px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .record-text {
+            margin-bottom: 14px;
+            line-height: 1.8;
+            font-size: 1.2rem;
+            color: #333;
+            font-weight: 500;
+            word-wrap: break-word;
+            letter-spacing: 0.02em;
+        }
+
+        .record-category {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .record-ai-indicator {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 3px 7px;
+            background: #4caf50;
+            color: white;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+
+        /* === カテゴリ別表示 === */
+        .category-section {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .category-header {
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .category-content {
+            padding: 15px;
+        }
+
+        .category-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 3px solid #667eea;
+        }
+
+        .category-item .category-text {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #333;
+            font-weight: 500;
+            word-wrap: break-word;
+            letter-spacing: 0.02em;
+        }
+
+        /* === レポート表示 === */
+        .report-content {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            line-height: 1.6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .report-section {
+            margin-bottom: 20px;
+        }
+
+        .report-section h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 4px;
+        }
+
+        /* === 統計表示 === */
+        .stats-display {
+            display: block;
+        }
+
+        .stats-display.hidden {
+            display: none;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .btn-secondary {
+            flex: 1;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-advance {
+            background: #17a2b8;
+        }
+
+        /* === ボトム入力フォーム === */
+        .bottom-input {
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            padding: 15px 20px 20px;
+            flex-shrink: 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            margin-bottom: 10px;
+        }
+
+        .student-name-input {
+            flex: 0 0 120px;
+        }
+
+        .experience-input {
+            flex: 1;
+        }
+
+        .input-row label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .input-row input,
+        .input-row textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-row input:focus,
+        .input-row textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-row textarea {
+            resize: none;
+            height: 60px;
+            min-height: 60px;
+            max-height: 120px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* === ステータス表示 === */
+        .status-message {
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status-info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+
+        /* === ローディング === */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* === 編集モード === */
+        .edit-mode {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+
+        .edit-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+
+        .edit-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .save-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        /* === 空状態表示 === */
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* === レスポンシブ調整 === */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .header p {
+                font-size: 0.8rem;
+            }
+
+            .monitor-tab {
+                font-size: 0.8rem;
+                padding: 10px 6px;
+            }
+
+            .monitor h3 {
+                font-size: 1rem;
+                margin-bottom: 12px;
+            }
+
+            .bottom-input {
+                padding: 12px 15px 15px;
+            }
+
+            .input-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .student-name-input {
+                flex: 1;
+            }
+
+            .stats-grid {
+                gap: 4px;
+                margin-bottom: 0;
+            }
+
+            .stat-card {
+                padding: 3px 6px;
+                min-width: 55px;
+                max-width: 70px;
+            }
+
+            .stat-number {
+                font-size: 0.75rem;
+                color: rgba(102, 126, 234, 0.6);
+            }
+
+            .stat-label {
+                font-size: 0.6rem;
+                color: #aaa;
+            }
+
+            .report-actions {
+                gap: 6px;
+            }
+
+            .record-text {
+                font-size: 1.1rem;
+                line-height: 1.7;
+                letter-spacing: 0.01em;
+            }
+
+            .category-item .category-text {
+                font-size: 1.05rem;
+                line-height: 1.7;
+                letter-spacing: 0.01em;
+            }
+
+            .monitor-stats {
+                padding: 8px 15px 6px;
+            }
+
+            .monitor-content {
+                padding: 12px 15px;
+            }
+
+            .monitor h3 {
+                font-size: 1rem;
+                margin-bottom: 12px;
+            }
+
+            .btn-secondary {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* === キーボード操作対応 === */
+        .input-row textarea {
+            transition: height 0.3s ease;
+        }
+
+        .input-row textarea:focus {
+            height: 80px;
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <div class="header">
+        <h1>🏥 MULTAs</h1>
+        <p>Medical University Learning and Training Assessment system</p>
+    </div>
+
+    <!-- モニター切り替えタブ -->
+    <div class="monitor-tabs">
+        <button class="monitor-tab active" onclick="switchMonitor('monitor1')">
+            📝 ログ保存
+        </button>
+        <button class="monitor-tab" onclick="switchMonitor('monitor2')">
+            🎯 体験整理
+        </button>
+        <button class="monitor-tab" onclick="switchMonitor('monitor3')">
+            📊 レポート
+        </button>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="main-content">
+        
+        <!-- 統計固定エリア -->
+        <div class="monitor-stats">
+            <!-- モニター1用統計 -->
+            <div id="stats-monitor1" class="stats-display">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalRecords">0</div>
+                        <div class="stat-label">総記録</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="todayRecords">0</div>
+                        <div class="stat-label">今日</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="aiProcessed">0</div>
+                        <div class="stat-label">AI済</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="currentDay">1日目</div>
+                        <div class="stat-label">進度</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- モニター2用統計 -->
+            <div id="stats-monitor2" class="stats-display" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="categoryCount">0</div>
+                        <div class="stat-label">分類数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="avgConfidence">0%</div>
+                        <div class="stat-label">信頼度</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- モニター3用統計 -->
+            <div id="stats-monitor3" class="stats-display" style="display: none;">
+                <div class="report-actions">
+                    <button class="btn-secondary" onclick="generateDailyReport()">
+                        🤖 レポート生成
+                    </button>
+                    <button class="btn-secondary btn-advance" onclick="advanceDay()">
+                        ➡️ 次の日へ
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- モニター1: ログ保存 -->
+        <div id="monitor1" class="monitor active">
+            <div class="monitor-content">
+                <h3>📝 時系列ログ保存</h3>
+                
+                <div id="recordsList">
+                    <div class="empty-state">
+                        <div class="icon">📝</div>
+                        <p>まだ記録がありません<br>下のフォームから最初の記録を追加してください</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- モニター2: 体験整理 -->
+        <div id="monitor2" class="monitor">
+            <div class="monitor-content">
+                <h3>🎯 体験整理 (AI分析)</h3>
+                
+                <div id="organizedView">
+                    <div class="empty-state">
+                        <div class="icon">🤖</div>
+                        <p>記録を追加すると<br>AI分析による8項目分類が表示されます</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- モニター3: Dailyレポート -->
+        <div id="monitor3" class="monitor">
+            <div class="monitor-content">
+                <h3>📊 Dailyレポート</h3>
+                
+                <div id="dailyReport">
+                    <div class="report-content">
+                        <h4>📋 本日の実習レポート</h4>
+                        <div class="empty-state">
+                            <div class="icon">📊</div>
+                            <p>記録を追加してから<br>「レポート生成」ボタンを押すと<br>その日の体験をまとめたレポートが自動生成されます</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ボトム入力フォーム -->
+    <div class="bottom-input">
+        <div class="input-row">
+            <div class="student-name-input">
+                <label for="studentName">学生名</label>
+                <input type="text" id="studentName" placeholder="山田太郎" value="テスト学生">
+            </div>
+            <div class="experience-input">
+                <label for="experienceText">実習体験・気づき</label>
+                <textarea id="experienceText" placeholder="今日の実習で学んだこと、気づいたこと、感じたことを記録..."></textarea>
+            </div>
+        </div>
+
+        <button type="button" class="submit-btn" onclick="submitExperience()">
+            <span id="submitText">📤 記録を保存</span>
+            <span id="submitLoading" style="display: none;">
+                <span class="loading"></span> 処理中...
+            </span>
+        </button>
+
+        <div id="statusMessage"></div>
+    </div>
+
+    <script>
+        // === グローバル変数 ===
+        let records = [];
+        let recordIdCounter = 0;
+        let currentMonitor = 'monitor1';
+
+        // === 医学実習カテゴリ定義 ===
+        const AI_CATEGORIES = {
+            medical_knowledge: { name: '👨‍⚕️ 医師のスキル', color: '#ff6b6b' },
+            patient_information: { name: '📋 患者情報', color: '#4ecdc4' },
+            patient_environment: { name: '🏠 患者の生活環境', color: '#45b7d1' },
+            team_collaboration: { name: '🤝 他職種連携', color: '#f9ca24' },
+            community_medicine: { name: '🌍 地域医療・コミュニティ', color: '#6c5ce7' },
+            ethics_philosophy: { name: '📚 医療倫理・哲学', color: '#a29bfe' },
+            personal_growth: { name: '✨ 自身の成長', color: '#fd79a8' },
+            other: { name: '📝 その他・複合的', color: '#636e72' }
+        };
+
+        // === 体験記録送信 ===
+        async function submitExperience() {
+            const studentName = document.getElementById('studentName').value.trim();
+            const experienceText = document.getElementById('experienceText').value.trim();
+            
+            if (!studentName || !experienceText) {
+                showStatus('学生名と体験内容を入力してください。', 'error');
+                return;
+            }
+
+            // UI状態を処理中に変更
+            const submitBtn = document.querySelector('.submit-btn');
+            const submitText = document.getElementById('submitText');
+            const submitLoading = document.getElementById('submitLoading');
+            
+            submitBtn.disabled = true;
+            submitText.style.display = 'none';
+            submitLoading.style.display = 'inline-block';
+
+            try {
+                // ローカル処理で即座に表示（v1モジュール）
+                const localRecord = {
+                    id: ++recordIdCounter,
+                    studentName: studentName,
+                    originalText: experienceText,
+                    timestamp: new Date(),
+                    category: 'personal_growth', // デフォルト
+                    confidence: 75,
+                    aiProcessed: false
+                };
+
+                records.unshift(localRecord);
+                updateAllViews();
+                showStatus('✅ 記録を保存しました！', 'success');
+
+                // フォームをクリア
+                document.getElementById('experienceText').value = '';
+
+                // バックグラウンドでGAS処理
+                try {
+                    const response = await fetch(window.location.href, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'processExperience',
+                            studentName: studentName,
+                            experienceText: experienceText
+                        })
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            // GAS処理成功時にローカル記録を更新
+                            localRecord.category = result.classificationResult.category;
+                            localRecord.confidence = result.classificationResult.confidence;
+                            localRecord.aiProcessed = result.classificationResult.aiProcessed;
+                            updateAllViews();
+                            showStatus('🤖 AI分析完了！分類結果を更新しました。', 'success');
+                        }
+                    }
+                } catch (gasError) {
+                    console.log('GAS処理はスキップ（ローカル動作）:', gasError);
+                }
+
+            } catch (error) {
+                console.error('記録処理エラー:', error);
+                showStatus('❌ 記録の保存に失敗しました。', 'error');
+            } finally {
+                // UI状態を元に戻す
+                submitBtn.disabled = false;
+                submitText.style.display = 'inline-block';
+                submitLoading.style.display = 'none';
+            }
+        }
+
+        // === モニター切り替え ===
+        function switchMonitor(monitorId) {
+            // 全モニターを非表示
+            document.querySelectorAll('.monitor').forEach(monitor => {
+                monitor.classList.remove('active');
+            });
+
+            // 全タブの active クラスを削除
+            document.querySelectorAll('.monitor-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // 全統計表示を非表示
+            document.querySelectorAll('.stats-display').forEach(stats => {
+                stats.style.display = 'none';
+            });
+
+            // 選択されたモニターを表示
+            document.getElementById(monitorId).classList.add('active');
+            event.target.classList.add('active');
+
+            // 対応する統計を表示
+            const statsId = 'stats-' + monitorId;
+            const statsElement = document.getElementById(statsId);
+            if (statsElement) {
+                statsElement.style.display = 'block';
+            }
+
+            currentMonitor = monitorId;
+
+            // モニター切り替え時に表示を更新
+            updateAllViews();
+        }
+
+        // === 全ビュー更新 ===
+        function updateAllViews() {
+            updateRecordsList();
+            updateOrganizedView();
+            updateStatistics();
+        }
+
+        // === 記録リスト更新（モニター1） ===
+        function updateRecordsList() {
+            const recordsList = document.getElementById('recordsList');
+            
+            if (records.length === 0) {
+                recordsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📝</div>
+                        <p>まだ記録がありません<br>下のフォームから最初の記録を追加してください</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = records.map(record => {
+                const category = AI_CATEGORIES[record.category] || AI_CATEGORIES.other;
+                const timeStr = record.timestamp.toLocaleString('ja-JP', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                return `
+                    <div class="record-item" data-id="${record.id}">
+                        <div class="record-header">
+                            <div class="record-timestamp">${timeStr}</div>
+                            <div class="record-actions">
+                                <button class="record-btn edit-btn" onclick="editRecord(${record.id})">
+                                    ✒️
+                                </button>
+                                <button class="record-btn delete-btn" onclick="deleteRecord(${record.id})">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                        <div class="record-text">${record.originalText}</div>
+                        <div>
+                            <span class="record-category">${category.name}</span>
+                            ${record.aiProcessed ? '<span class="record-ai-indicator">🤖</span>' : ''}
+                            <span style="margin-left: 6px; color: #666; font-size: 0.75rem;">
+                                ${record.confidence}%
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            recordsList.innerHTML = html;
+        }
+
+        // === 整理ビュー更新（モニター2） ===
+        function updateOrganizedView() {
+            const organizedView = document.getElementById('organizedView');
+            
+            if (records.length === 0) {
+                organizedView.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🤖</div>
+                        <p>記録を追加すると<br>AI分析による8項目分類が表示されます</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // カテゴリ別にグループ化
+            const groupedRecords = {};
+            records.forEach(record => {
+                const category = record.category || 'other';
+                if (!groupedRecords[category]) {
+                    groupedRecords[category] = [];
+                }
+                groupedRecords[category].push(record);
+            });
+
+            // HTML生成
+            let html = '';
+            for (const [categoryId, categoryRecords] of Object.entries(groupedRecords)) {
+                const category = AI_CATEGORIES[categoryId] || AI_CATEGORIES.other;
+                
+                html += `
+                    <div class="category-section">
+                        <div class="category-header">
+                            ${category.name} (${categoryRecords.length}件)
+                        </div>
+                        <div class="category-content">
+                            ${categoryRecords.map(record => `
+                                <div class="category-item">
+                                    <div style="font-size: 0.75rem; color: #666; margin-bottom: 8px;">
+                                        ${record.timestamp.toLocaleString('ja-JP', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}
+                                        ${record.aiProcessed ? '🤖' : ''}
+                                        (${record.confidence}%)
+                                    </div>
+                                    <div class="category-text">${record.originalText}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            organizedView.innerHTML = html;
+        }
+
+        // === 統計更新 ===
+        function updateStatistics() {
+            // 基本統計
+            document.getElementById('totalRecords').textContent = records.length;
+            
+            // 今日の記録数
+            const today = new Date().toDateString();
+            const todayCount = records.filter(r => r.timestamp.toDateString() === today).length;
+            document.getElementById('todayRecords').textContent = todayCount;
+            
+            // AI処理済み数
+            const aiCount = records.filter(r => r.aiProcessed).length;
+            document.getElementById('aiProcessed').textContent = aiCount;
+
+            // カテゴリ数
+            const uniqueCategories = new Set(records.map(r => r.category)).size;
+            document.getElementById('categoryCount').textContent = uniqueCategories;
+
+            // 平均信頼度
+            if (records.length > 0) {
+                const avgConfidence = Math.round(
+                    records.reduce((sum, r) => sum + r.confidence, 0) / records.length
+                );
+                document.getElementById('avgConfidence').textContent = avgConfidence + '%';
+            }
+        }
+
+        // === 記録編集 ===
+        function editRecord(recordId) {
+            const record = records.find(r => r.id === recordId);
+            if (!record) return;
+
+            const recordElement = document.querySelector(`[data-id="${recordId}"]`);
+            const textElement = recordElement.querySelector('.record-text');
+            
+            // 編集モードに切り替え
+            recordElement.classList.add('edit-mode');
+            textElement.innerHTML = `
+                <textarea class="edit-textarea">${record.originalText}</textarea>
+                <div class="edit-actions">
+                    <button class="record-btn save-btn" onclick="saveRecord(${recordId})">💾</button>
+                    <button class="record-btn cancel-btn" onclick="cancelEdit(${recordId})">❌</button>
+                </div>
+            `;
+        }
+
+        // === 記録保存 ===
+        function saveRecord(recordId) {
+            const record = records.find(r => r.id === recordId);
+            if (!record) return;
+
+            const recordElement = document.querySelector(`[data-id="${recordId}"]`);
+            const textarea = recordElement.querySelector('.edit-textarea');
+            const newText = textarea.value.trim();
+
+            if (newText) {
+                record.originalText = newText;
+                updateAllViews();
+                showStatus('✅ 記録を更新しました。', 'success');
+            }
+        }
+
+        // === 編集キャンセル ===
+        function cancelEdit(recordId) {
+            updateAllViews();
+        }
+
+        // === 記録削除 ===
+        function deleteRecord(recordId) {
+            if (confirm('この記録を削除しますか？')) {
+                records = records.filter(r => r.id !== recordId);
+                updateAllViews();
+                showStatus('🗑️ 記録を削除しました。', 'warning');
+            }
+        }
+
+        // === 日次レポート生成 ===
+        function generateDailyReport() {
+            const dailyReport = document.getElementById('dailyReport');
+            
+            if (records.length === 0) {
+                showStatus('記録がありません。まず体験を記録してください。', 'warning');
+                return;
+            }
+
+            // 今日の記録をフィルタ
+            const today = new Date().toDateString();
+            const todayRecords = records.filter(r => r.timestamp.toDateString() === today);
+
+            if (todayRecords.length === 0) {
+                showStatus('今日の記録がありません。', 'warning');
+                return;
+            }
+
+            // カテゴリ別に分類
+            const categoryGroups = {};
+            todayRecords.forEach(record => {
+                const category = record.category || 'other';
+                if (!categoryGroups[category]) {
+                    categoryGroups[category] = [];
+                }
+                categoryGroups[category].push(record);
+            });
+
+            // レポート生成
+            let reportHtml = `
+                <div class="report-content">
+                    <h4>📋 ${new Date().toLocaleDateString('ja-JP')}の実習レポート</h4>
+                    
+                    <div class="report-section">
+                        <h4>📊 概要</h4>
+                        <p>本日は${todayRecords.length}件の学習記録を作成しました。</p>
+                        <p>記録されたカテゴリ: ${Object.keys(categoryGroups).length}項目</p>
+                    </div>
+            `;
+
+            // カテゴリ別詳細
+            for (const [categoryId, categoryRecords] of Object.entries(categoryGroups)) {
+                const category = AI_CATEGORIES[categoryId] || AI_CATEGORIES.other;
+                
+                reportHtml += `
+                    <div class="report-section">
+                        <h4>${category.name}</h4>
+                        <ul>
+                            ${categoryRecords.map(record => `
+                                <li>${record.originalText}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            reportHtml += `
+                    <div class="report-section">
+                        <h4>💡 まとめ</h4>
+                        <p>今日の実習では様々な学びがありました。特に${Object.keys(categoryGroups)[0] ? AI_CATEGORIES[Object.keys(categoryGroups)[0]].name : '実習体験'}に関する理解が深まりました。</p>
+                    </div>
+                </div>
+            `;
+
+            dailyReport.innerHTML = reportHtml;
+            showStatus('📊 本日のレポートを生成しました！', 'success');
+        }
+
+        // === 次の日へ進む ===
+        async function advanceDay() {
+            const studentName = document.getElementById('studentName').value.trim();
+            
+            if (!studentName) {
+                showStatus('学生名を入力してください。', 'error');
+                return;
+            }
+
+            try {
+                // ローカルで日数を進める
+                const currentDayElement = document.getElementById('currentDay');
+                const currentDayText = currentDayElement.textContent;
+                const currentDayNum = parseInt(currentDayText.replace('日目', '')) || 1;
+                const nextDay = Math.min(currentDayNum + 1, 5);
+                
+                currentDayElement.textContent = nextDay + '日目';
+                showStatus(`✅ ${nextDay}日目に進みました！`, 'success');
+
+                // GAS連携（バックグラウンド）
+                try {
+                    const response = await fetch(window.location.href, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'advanceDay',
+                            studentName: studentName
+                        })
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('日次進行結果:', result);
+                    }
+                } catch (gasError) {
+                    console.log('GAS日次進行スキップ:', gasError);
+                }
+
+            } catch (error) {
+                console.error('日次進行エラー:', error);
+                showStatus('❌ 日次進行に失敗しました。', 'error');
+            }
+        }
+
+        // === ステータス表示 ===
+        function showStatus(message, type = 'info') {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
+            
+            // 5秒後に消去
+            setTimeout(() => {
+                statusMessage.innerHTML = '';
+            }, 5000);
+        }
+
+        // === 初期化 ===
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('MULTAs システム初期化完了');
+            
+            // 初期表示設定
+            document.getElementById('stats-monitor1').style.display = 'block';
+            
+            updateAllViews();
+            
+            // Enter キーでの送信
+            document.getElementById('experienceText').addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    submitExperience();
+                }
+            });
+
+            // テキストエリアの動的リサイズ
+            const textarea = document.getElementById('experienceText');
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+        });
+    </script>
+</body>
+</html>
