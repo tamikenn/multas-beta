@@ -208,8 +208,36 @@
             display: flex;
             gap: 6px;
             margin-bottom: 0;
-            flex-wrap: wrap;
-            justify-content: space-between;
+            align-items: center;
+        }
+
+        .exp-bar-container {
+            flex: 1;
+            height: 30px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            margin-left: 10px;
+        }
+
+        .exp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecdc4 0%, #44a3aa 100%);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            box-shadow: 0 2px 4px rgba(78, 205, 196, 0.3);
+        }
+
+        .exp-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #333;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-shadow: 0 0 2px rgba(255,255,255,0.8);
         }
 
         .stat-card {
@@ -772,16 +800,20 @@
             <div id="stats-monitor1" class="stats-display">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-number" id="totalRecords">0</div>
-                        <div class="stat-label">総記録</div>
+                        <div class="stat-number" id="recordCount">0</div>
+                        <div class="stat-label">記録回数</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="todayRecords">0</div>
-                        <div class="stat-label">今日</div>
+                        <div class="stat-number" id="userLevel">1</div>
+                        <div class="stat-label">LV</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="aiProcessed">0</div>
-                        <div class="stat-label">AI済</div>
+                        <div class="stat-number" id="userExp">0</div>
+                        <div class="stat-label">EXP</div>
+                    </div>
+                    <div class="exp-bar-container">
+                        <div class="exp-bar" id="expBar" style="width: 0%;"></div>
+                        <div class="exp-text" id="expText1">0 / 100</div>
                     </div>
                 </div>
             </div>
@@ -790,12 +822,20 @@
             <div id="stats-monitor2" class="stats-display" style="display: none;">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-number" id="categoryCount">0</div>
-                        <div class="stat-label">分類数</div>
+                        <div class="stat-number" id="recordCount2">0</div>
+                        <div class="stat-label">記録回数</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="avgConfidence">0%</div>
-                        <div class="stat-label">信頼度</div>
+                        <div class="stat-number" id="userLevel2">1</div>
+                        <div class="stat-label">LV</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="userExp2">0</div>
+                        <div class="stat-label">EXP</div>
+                    </div>
+                    <div class="exp-bar-container">
+                        <div class="exp-bar" id="expBar2" style="width: 0%;"></div>
+                        <div class="exp-text" id="expText2">0 / 100</div>
                     </div>
                 </div>
             </div>
@@ -873,6 +913,10 @@
         let recordIdCounter = 0;
         let currentMonitor = 'monitor1';
         let currentDay = 1;  // 現在の日付（1-5またはpractice）
+        let userLevel = 1;
+        let userExp = 0;
+        const EXP_PER_RECORD = 20;
+        const EXP_TO_LEVEL_UP = 100;
 
         // === 医学実習カテゴリ定義 ===
         const AI_CATEGORIES = {
@@ -917,6 +961,10 @@
                 };
 
                 records.unshift(localRecord);
+                
+                // 経験値を追加
+                addExperience(EXP_PER_RECORD);
+                
                 updateAllViews();
                 showStatus('✅ 送信しました！', 'success');
 
@@ -998,10 +1046,51 @@
         }
 
         // === 全ビュー更新 ===
+        // === 経験値追加 ===
+        function addExperience(exp) {
+            userExp += exp;
+            
+            // レベルアップチェック
+            while (userExp >= EXP_TO_LEVEL_UP) {
+                userExp -= EXP_TO_LEVEL_UP;
+                userLevel++;
+                showStatus(`🎉 レベルアップ！ LV.${userLevel}になりました！`, 'success');
+            }
+            
+            updateExpDisplay();
+        }
+
+        // === 経験値表示更新 ===
+        function updateExpDisplay() {
+            // 記録回数更新
+            const recordCount = records.filter(r => r.day === currentDay).length;
+            document.getElementById('recordCount').textContent = recordCount;
+            document.getElementById('recordCount2').textContent = recordCount;
+            
+            // レベル更新
+            document.getElementById('userLevel').textContent = userLevel;
+            document.getElementById('userLevel2').textContent = userLevel;
+            
+            // 経験値更新
+            document.getElementById('userExp').textContent = userExp;
+            document.getElementById('userExp2').textContent = userExp;
+            
+            // 経験値バー更新
+            const expPercent = (userExp / EXP_TO_LEVEL_UP) * 100;
+            document.getElementById('expBar').style.width = expPercent + '%';
+            document.getElementById('expBar2').style.width = expPercent + '%';
+            
+            // 経験値テキスト更新
+            const expText = `${userExp} / ${EXP_TO_LEVEL_UP}`;
+            document.getElementById('expText1').textContent = expText;
+            document.getElementById('expText2').textContent = expText;
+        }
+
         function updateAllViews() {
             updateRecordsList();
             updateOrganizedView();
             updateStatistics();
+            updateExpDisplay();
         }
 
         // === 現在の日付の記録を取得 ===
