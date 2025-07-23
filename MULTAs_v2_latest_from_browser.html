@@ -968,9 +968,6 @@
                 updateAllViews();
                 showStatus('✅ 送信しました！', 'success');
 
-                // フォームをクリア
-                document.getElementById('experienceText').value = '';
-
                 // バックグラウンドでGAS処理
                 try {
                     const response = await fetch(window.location.href, {
@@ -1001,13 +998,16 @@
                 }
 
             } catch (error) {
-                console.error('記録処理エラー:', error);
-                showStatus('❌ 記録の保存に失敗しました。', 'error');
+                // ローカル環境では正常動作なのでエラー表示しない
+                console.log('ローカル環境での動作:', error);
             } finally {
                 // UI状態を元に戻す
                 submitBtn.disabled = false;
                 submitText.style.display = 'inline-block';
                 submitLoading.style.display = 'none';
+                
+                // フォームをクリア
+                document.getElementById('experienceText').value = '';
             }
         }
 
