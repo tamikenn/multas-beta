@@ -1217,24 +1217,16 @@
         // === 日次レポート生成 ===
         function generateDailyReport() {
             const dailyReport = document.getElementById('dailyReport');
+            const dayRecords = getCurrentDayRecords();
             
-            if (records.length === 0) {
-                showStatus('記録がありません。まず体験を記録してください。', 'warning');
-                return;
-            }
-
-            // 今日の記録をフィルタ
-            const today = new Date().toDateString();
-            const todayRecords = records.filter(r => r.timestamp.toDateString() === today);
-
-            if (todayRecords.length === 0) {
-                showStatus('今日の記録がありません。', 'warning');
+            if (dayRecords.length === 0) {
+                showStatus(`${currentDay === 'practice' ? '練習用' : `${currentDay}日目`}の記録がありません。`, 'warning');
                 return;
             }
 
             // カテゴリ別に分類
             const categoryGroups = {};
-            todayRecords.forEach(record => {
+            dayRecords.forEach(record => {
                 const category = record.category || 'other';
                 if (!categoryGroups[category]) {
                     categoryGroups[category] = [];
@@ -1245,11 +1237,11 @@
             // レポート生成
             let reportHtml = `
                 <div class="report-content">
-                    <h4>📋 ${new Date().toLocaleDateString('ja-JP')}の実習レポート</h4>
+                    <h4>📋 ${currentDay === 'practice' ? '練習用' : `${currentDay}日目`}の実習レポート</h4>
                     
                     <div class="report-section">
                         <h4>📊 概要</h4>
-                        <p>本日は${todayRecords.length}件の学習記録を作成しました。</p>
+                        <p>${currentDay === 'practice' ? '練習' : `${currentDay}日目`}は${dayRecords.length}件の学習記録を作成しました。</p>
                         <p>記録されたカテゴリ: ${Object.keys(categoryGroups).length}項目</p>
                     </div>
             `;
@@ -1349,17 +1341,18 @@
             const reportContent = document.getElementById('dailyReport');
             const dayRecords = getCurrentDayRecords();
             
-            if (dayRecords.length === 0) {
-                reportContent.innerHTML = `
-                    <div class="report-content">
-                        <h4>📋 ${currentDay === 'practice' ? '練習用' : `${currentDay}日目`}の実習レポート</h4>
-                        <div class="empty-state">
-                            <div class="icon">📊</div>
-                            <p>記録を追加してから<br>「レポート生成」ボタンを押すと<br>その日の体験をまとめたレポートが自動生成されます</p>
-                        </div>
+            reportContent.innerHTML = `
+                <div class="report-content">
+                    <h4>📋 ${currentDay === 'practice' ? '練習用' : `${currentDay}日目`}の実習レポート</h4>
+                    <div class="empty-state">
+                        <div class="icon">📊</div>
+                        <p>${dayRecords.length > 0 ? 
+                            `${dayRecords.length}件の記録があります<br>「レポート生成」ボタンを押してレポートを作成してください` : 
+                            `記録を追加してから<br>「レポート生成」ボタンを押すと<br>その日の体験をまとめたレポートが自動生成されます`
+                        }</p>
                     </div>
-                `;
-            }
+                </div>
+            `;
         }
 
         // === Wholeレポート表示 ===
@@ -1418,6 +1411,11 @@
             
             // 表示を更新
             updateAllViews();
+            
+            // REPORTタブが表示されている場合は、レポート表示も更新
+            if (currentMonitor === 'monitor3' && currentReportType === 'daily') {
+                showDailyReport();
+            }
             
             // 5日分の記録があるかチェックし、Whole Reportボタンを有効化
             checkWholeReportAvailability();
