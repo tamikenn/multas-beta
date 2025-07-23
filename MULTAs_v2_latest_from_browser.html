@@ -50,33 +50,41 @@
         /* === モニター切り替えタブ === */
         .monitor-tabs {
             display: flex;
+            gap: 10px;
+            padding: 10px 20px;
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
             flex-shrink: 0;
+            justify-content: center;
         }
 
         .monitor-tab {
-            flex: 1;
-            padding: 12px 8px;
-            border: none;
-            background: transparent;
-            color: rgba(255,255,255,0.7);
-            font-size: 0.85rem;
+            padding: 10px 24px;
+            border: 2px solid #4a9eff;
+            background: white;
+            color: #4a9eff;
+            font-size: 0.9rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
+            border-radius: 25px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 140px;
+            text-align: center;
         }
 
         .monitor-tab:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
+            background: #e8f2ff;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(74, 158, 255, 0.2);
         }
 
         .monitor-tab.active {
-            background: rgba(255,255,255,0.2);
+            background: #4a9eff;
             color: white;
-            border-bottom-color: #ffeb3b;
-            font-weight: bold;
+            border-color: #4a9eff;
+            box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
         }
 
         /* === メインコンテンツエリア === */
@@ -637,13 +645,13 @@
     <!-- モニター切り替えタブ -->
     <div class="monitor-tabs">
         <button class="monitor-tab active" onclick="switchMonitor('monitor1')">
-            📝 ログ保存
+            RECORD LOG
         </button>
         <button class="monitor-tab" onclick="switchMonitor('monitor2')">
-            🎯 体験整理
+            LIST DISPLAY
         </button>
         <button class="monitor-tab" onclick="switchMonitor('monitor3')">
-            📊 レポート
+            REPORT
         </button>
     </div>
 
