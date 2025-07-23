@@ -539,7 +539,6 @@
             color: white;
             border: none;
             border-radius: 50%;
-            font-size: 1.4rem;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -547,6 +546,12 @@
             justify-content: center;
             box-shadow: 0 4px 15px rgba(102, 187, 106, 0.4);
             z-index: 10;
+        }
+
+        .submit-btn svg {
+            width: 24px;
+            height: 24px;
+            transform: rotate(-10deg);
         }
 
         .submit-btn:hover {
@@ -897,7 +902,11 @@
             <div class="experience-input" style="position: relative;">
                 <textarea id="experienceText" placeholder="実習で体験したことを記録… ※患者の個人情報は入力しない"></textarea>
                 <button type="button" class="submit-btn" onclick="submitExperience()" title="送信">
-                    <span id="submitText">✈️</span>
+                    <span id="submitText">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="white"/>
+                        </svg>
+                    </span>
                     <span id="submitLoading" style="display: none;">
                         <span class="loading"></span>
                     </span>
