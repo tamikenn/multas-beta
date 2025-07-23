@@ -50,37 +50,72 @@
         /* === 日付選択 === */
         .day-selector {
             display: flex;
-            gap: 8px;
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.95);
             justify-content: center;
             align-items: center;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.95);
             border-bottom: 1px solid #e0e0e0;
         }
 
-        .day-btn {
-            padding: 8px 16px;
-            border: 2px solid #ddd;
-            background: white;
-            color: #666;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 20px;
-            min-width: 80px;
-        }
-
-        .day-btn:hover {
-            background: #f5f5f5;
-            transform: translateY(-1px);
-        }
-
-        .day-btn.active {
+        .day-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
             background: #ff6b6b;
             color: white;
-            border-color: #ff6b6b;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
             box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+        }
+
+        .day-display:hover {
+            background: #ff5252;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+        }
+
+        .day-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 10px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            overflow: hidden;
+            display: none;
+        }
+
+        .day-dropdown.active {
+            display: block;
+        }
+
+        .day-option {
+            padding: 12px 30px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .day-option:last-child {
+            border-bottom: none;
+        }
+
+        .day-option:hover {
+            background: #f5f5f5;
+        }
+
+        .day-option.selected {
+            background: #ff6b6b;
+            color: white;
         }
 
         /* === モニター切り替えタブ === */
@@ -745,12 +780,18 @@
 
     <!-- 日付選択 -->
     <div class="day-selector">
-        <button class="day-btn" onclick="selectDay('practice')">練習用</button>
-        <button class="day-btn active" onclick="selectDay(1)">1日目</button>
-        <button class="day-btn" onclick="selectDay(2)">2日目</button>
-        <button class="day-btn" onclick="selectDay(3)">3日目</button>
-        <button class="day-btn" onclick="selectDay(4)">4日目</button>
-        <button class="day-btn" onclick="selectDay(5)">5日目</button>
+        <div class="day-display" onclick="toggleDayDropdown()" style="position: relative;">
+            <span id="currentDayLabel">1日目</span>
+            <span style="font-size: 0.8em;">▼</span>
+            <div class="day-dropdown" id="dayDropdown">
+                <div class="day-option" onclick="selectDay('practice')">練習用</div>
+                <div class="day-option selected" onclick="selectDay(1)">1日目</div>
+                <div class="day-option" onclick="selectDay(2)">2日目</div>
+                <div class="day-option" onclick="selectDay(3)">3日目</div>
+                <div class="day-option" onclick="selectDay(4)">4日目</div>
+                <div class="day-option" onclick="selectDay(5)">5日目</div>
+            </div>
+        </div>
     </div>
 
     <!-- モニター切り替えタブ -->
@@ -1393,21 +1434,34 @@
             }, 5000);
         }
 
+        // === ドロップダウン開閉 ===
+        function toggleDayDropdown() {
+            const dropdown = document.getElementById('dayDropdown');
+            dropdown.classList.toggle('active');
+        }
+
         // === 日付選択機能 ===
         function selectDay(day) {
             currentDay = day;
             
-            // ボタンのアクティブ状態を更新
-            document.querySelectorAll('.day-btn').forEach(btn => {
-                btn.classList.remove('active');
+            // ドロップダウンのアクティブ状態を更新
+            document.querySelectorAll('.day-option').forEach(option => {
+                option.classList.remove('selected');
             });
-            event.target.classList.add('active');
+            event.target.classList.add('selected');
+            
+            // ラベルを更新
+            const dayLabel = document.getElementById('currentDayLabel');
+            dayLabel.textContent = day === 'practice' ? '練習用' : `${day}日目`;
             
             // 日付表示を更新
             const dayDisplay = document.getElementById('currentDayDisplay');
             if (dayDisplay) {
                 dayDisplay.textContent = day === 'practice' ? '練習用' : `${day}日目`;
             }
+            
+            // ドロップダウンを閉じる
+            document.getElementById('dayDropdown').classList.remove('active');
             
             // 表示を更新
             updateAllViews();
@@ -1477,6 +1531,13 @@
             textarea.addEventListener('input', function() {
                 this.style.height = 'auto';
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+
+            // ドロップダウンの外側クリックで閉じる
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.day-display')) {
+                    document.getElementById('dayDropdown').classList.remove('active');
+                }
             });
         });
     </script>
