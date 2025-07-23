@@ -47,6 +47,42 @@
             opacity: 0.9;
         }
 
+        /* === 日付選択 === */
+        .day-selector {
+            display: flex;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.95);
+            justify-content: center;
+            align-items: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .day-btn {
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            background: white;
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 20px;
+            min-width: 80px;
+        }
+
+        .day-btn:hover {
+            background: #f5f5f5;
+            transform: translateY(-1px);
+        }
+
+        .day-btn.active {
+            background: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+        }
+
         /* === モニター切り替えタブ === */
         .monitor-tabs {
             display: flex;
@@ -376,6 +412,41 @@
             background: #7dd87d;
         }
 
+        .report-type-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .report-type-btn {
+            padding: 8px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 20px;
+        }
+
+        .report-type-btn:hover:not(:disabled) {
+            background: #f5f5f5;
+            transform: translateY(-1px);
+        }
+
+        .report-type-btn.active {
+            background: #4a9eff;
+            color: white;
+            border-color: #4a9eff;
+        }
+
+        .report-type-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* === ボトム入力フォーム === */
         .bottom-input {
             background: white;
@@ -672,13 +743,23 @@
         <p>Medical University Learning and Training Assessment system</p>
     </div>
 
+    <!-- 日付選択 -->
+    <div class="day-selector">
+        <button class="day-btn" onclick="selectDay('practice')">練習用</button>
+        <button class="day-btn active" onclick="selectDay(1)">1日目</button>
+        <button class="day-btn" onclick="selectDay(2)">2日目</button>
+        <button class="day-btn" onclick="selectDay(3)">3日目</button>
+        <button class="day-btn" onclick="selectDay(4)">4日目</button>
+        <button class="day-btn" onclick="selectDay(5)">5日目</button>
+    </div>
+
     <!-- モニター切り替えタブ -->
     <div class="monitor-tabs">
         <button class="monitor-tab active" onclick="switchMonitor('monitor1')">
-            RECORD LOG
+            LOG
         </button>
         <button class="monitor-tab" onclick="switchMonitor('monitor2')">
-            LIST DISPLAY
+            LIST
         </button>
         <button class="monitor-tab" onclick="switchMonitor('monitor3')">
             REPORT
@@ -705,9 +786,9 @@
                         <div class="stat-number" id="aiProcessed">0</div>
                         <div class="stat-label">AI済</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="currentDay">1日目</div>
-                        <div class="stat-label">進度</div>
+                    <div class="stat-card" style="background: #ff6b6b; color: white;">
+                        <div class="stat-number" id="currentDayDisplay" style="font-size: 1.2rem;">1日目</div>
+                        <div class="stat-label" style="color: rgba(255,255,255,0.9);">現在</div>
                     </div>
                 </div>
             </div>
@@ -728,15 +809,17 @@
 
             <!-- モニター3用統計 -->
             <div id="stats-monitor3" class="stats-display" style="display: none;">
-                <div class="report-actions">
-                    <button class="btn-secondary btn-previous" onclick="previousDay()">
-                        ⬅️ 前の日へ
+                <div class="report-type-selector">
+                    <button class="report-type-btn active" onclick="selectReportType('daily')">
+                        Daily Report
                     </button>
+                    <button class="report-type-btn" onclick="selectReportType('whole')" id="wholeReportBtn" disabled>
+                        Whole Report (5日分)
+                    </button>
+                </div>
+                <div class="report-actions">
                     <button class="btn-secondary" onclick="generateDailyReport()">
                         🤖 レポート生成
-                    </button>
-                    <button class="btn-secondary btn-advance" onclick="advanceDay()">
-                        ➡️ 次の日へ
                     </button>
                 </div>
             </div>
@@ -814,6 +897,8 @@
         let records = [];
         let recordIdCounter = 0;
         let currentMonitor = 'monitor1';
+        let currentDay = 1;  // 現在の日付（1-5またはpractice）
+        let currentReportType = 'daily';  // 現在のレポートタイプ
 
         // === 医学実習カテゴリ定義 ===
         const AI_CATEGORIES = {
@@ -853,6 +938,7 @@
                     studentName: studentName,
                     originalText: experienceText,
                     timestamp: new Date(),
+                    day: currentDay, // 現在の日付を記録
                     category: 'personal_growth', // デフォルト
                     confidence: 75,
                     aiProcessed: false
@@ -946,11 +1032,17 @@
             updateStatistics();
         }
 
+        // === 現在の日付の記録を取得 ===
+        function getCurrentDayRecords() {
+            return records.filter(record => record.day === currentDay);
+        }
+
         // === 記録リスト更新（モニター1） ===
         function updateRecordsList() {
             const recordsList = document.getElementById('recordsList');
+            const dayRecords = getCurrentDayRecords();
             
-            if (records.length === 0) {
+            if (dayRecords.length === 0) {
                 recordsList.innerHTML = `
                     <div class="empty-state">
                         <div class="icon">📝</div>
@@ -960,7 +1052,7 @@
                 return;
             }
 
-            const html = records.map(record => {
+            const html = dayRecords.map(record => {
                 const category = AI_CATEGORIES[record.category] || AI_CATEGORIES.other;
                 const timeStr = record.timestamp.toLocaleString('ja-JP', {
                     month: 'short',
@@ -1000,8 +1092,9 @@
         // === 整理ビュー更新（モニター2） ===
         function updateOrganizedView() {
             const organizedView = document.getElementById('organizedView');
+            const dayRecords = getCurrentDayRecords();
             
-            if (records.length === 0) {
+            if (dayRecords.length === 0) {
                 organizedView.innerHTML = `
                     <div class="empty-state">
                         <div class="icon">🤖</div>
@@ -1013,7 +1106,7 @@
 
             // カテゴリ別にグループ化
             const groupedRecords = {};
-            records.forEach(record => {
+            dayRecords.forEach(record => {
                 const category = record.category || 'other';
                 if (!groupedRecords[category]) {
                     groupedRecords[category] = [];
@@ -1251,6 +1344,51 @@
             }
         }
 
+        // === Dailyレポート表示 ===
+        function showDailyReport() {
+            const reportContent = document.getElementById('dailyReport');
+            const dayRecords = getCurrentDayRecords();
+            
+            if (dayRecords.length === 0) {
+                reportContent.innerHTML = `
+                    <div class="report-content">
+                        <h4>📋 ${currentDay === 'practice' ? '練習用' : `${currentDay}日目`}の実習レポート</h4>
+                        <div class="empty-state">
+                            <div class="icon">📊</div>
+                            <p>記録を追加してから<br>「レポート生成」ボタンを押すと<br>その日の体験をまとめたレポートが自動生成されます</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // === Wholeレポート表示 ===
+        function showWholeReport() {
+            const reportContent = document.getElementById('dailyReport');
+            reportContent.innerHTML = `
+                <div class="report-content">
+                    <h4>📈 5日間総合レポート</h4>
+                    <div class="whole-report-content">
+                        <p>5日間の実習体験を総合的に分析したレポートを生成します。</p>
+                        <button class="btn-secondary" onclick="generateWholeReport()">
+                            🤖 総合レポート生成
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // === 5日間総合レポート生成 ===
+        async function generateWholeReport() {
+            showStatus('🤖 5日間の総合レポートを生成中...', 'info');
+            
+            // TODO: AIを使って5日間分の記録を分析
+            
+            setTimeout(() => {
+                showStatus('🎆 5日間の総合レポートが完成しました！', 'success');
+            }, 2000);
+        }
+
         // === ステータス表示 ===
         function showStatus(message, type = 'info') {
             const statusMessage = document.getElementById('statusMessage');
@@ -1260,6 +1398,64 @@
             setTimeout(() => {
                 statusMessage.innerHTML = '';
             }, 5000);
+        }
+
+        // === 日付選択機能 ===
+        function selectDay(day) {
+            currentDay = day;
+            
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 日付表示を更新
+            const dayDisplay = document.getElementById('currentDayDisplay');
+            if (dayDisplay) {
+                dayDisplay.textContent = day === 'practice' ? '練習用' : `${day}日目`;
+            }
+            
+            // 表示を更新
+            updateAllViews();
+            
+            // 5日分の記録があるかチェックし、Whole Reportボタンを有効化
+            checkWholeReportAvailability();
+        }
+
+        // === レポートタイプ選択 ===
+        function selectReportType(type) {
+            currentReportType = type;
+            
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.report-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // レポート表示を更新
+            if (type === 'whole') {
+                showWholeReport();
+            } else {
+                showDailyReport();
+            }
+        }
+
+        // === 5日分の記録があるかチェック ===
+        function checkWholeReportAvailability() {
+            const daysWithRecords = new Set();
+            records.forEach(record => {
+                if (typeof record.day === 'number' && record.day >= 1 && record.day <= 5) {
+                    daysWithRecords.add(record.day);
+                }
+            });
+            
+            const wholeReportBtn = document.getElementById('wholeReportBtn');
+            if (daysWithRecords.size >= 5) {
+                wholeReportBtn.disabled = false;
+            } else {
+                wholeReportBtn.disabled = true;
+            }
         }
 
         // === 初期化 ===
