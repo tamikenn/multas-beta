@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医師国家試験 解説集</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .upload-area {
+            border: 2px dashed #3498db;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            background-color: #e3f2fd;
+            border-color: #2980b9;
+        }
+        .upload-area.drag-over {
+            background-color: #e3f2fd;
+            border-color: #2980b9;
+            transform: scale(1.02);
+        }
+        .upload-icon {
+            font-size: 48px;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+        .question {
+            background-color: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+        .question-id {
+            font-weight: bold;
+            color: #3498db;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .correct-answer {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+        .section-title {
+            color: #2c3e50;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+        .explanation-content {
+            text-align: justify;
+            margin-bottom: 15px;
+        }
+        .correct {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: #e74c3c;
+        }
+        .metadata {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 15px;
+            text-align: right;
+        }
+        .stats {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .stats h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .stat-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        #file-input {
+            display: none;
+        }
+        .search-box {
+            margin-bottom: 20px;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>医師国家試験 解説集</h1>
+        
+        <div class="upload-area" id="upload-area">
+            <div class="upload-icon">📁</div>
+            <p><strong>JSONファイルをドラッグ＆ドロップ</strong><br>または<br>クリックしてファイルを選択</p>
+            <input type="file" id="file-input" accept=".json">
+        </div>
+
+        <div id="content-area" class="hidden">
+            <div class="stats" id="stats">
+                <h2>統計情報</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-questions">0</div>
+                        <div class="stat-label">総問題数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="success-count">0</div>
+                        <div class="stat-label">成功</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="avg-word-count">0</div>
+                        <div class="stat-label">平均文字数</div>
+                    </div>
+                </div>
+            </div>
+
+            <input type="text" class="search-box" id="search-box" placeholder="問題IDまたはキーワードで検索...">
+            
+            <div id="questions-container">
+                <!-- Questions will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let explanationsData = [];
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const contentArea = document.getElementById('content-area');
+        const searchBox = document.getElementById('search-box');
+
+        // Upload area click handler
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // File input change handler
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        });
+
+        // Drag and drop handlers
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'application/json') {
+                processFile(file);
+            } else {
+                alert('JSONファイルを選択してください。');
+            }
+        });
+
+        // Search functionality
+        searchBox.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            filterQuestions(searchTerm);
+        });
+
+        function processFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    explanationsData = JSON.parse(e.target.result);
+                    displayQuestions(explanationsData);
+                    updateStats();
+                    uploadArea.classList.add('hidden');
+                    contentArea.classList.remove('hidden');
+                } catch (error) {
+                    alert('JSONファイルの解析に失敗しました: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function formatExplanation(explanation) {
+            let formatted = explanation.replace(/\n/g, '<br>');
+            formatted = formatted.replace(/(\d\.\s[^<]+?\s\(\d+字\))/g, '<div class="section-title">$1</div>');
+            formatted = formatted.replace(/<選択肢考察>/g, '<div class="section-title">選択肢考察</div>');
+            formatted = formatted.replace(/○/g, '<span class="correct">○</span>');
+            formatted = formatted.replace(/×/g, '<span class="incorrect">×</span>');
+            return formatted;
+        }
+
+        function displayQuestions(data) {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+            
+            data.forEach(item => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.id = item.question_id;
+                
+                const correctAnswerMatch = item.explanation.match(/【正答】([a-e])/);
+                const correctAnswer = correctAnswerMatch ? correctAnswerMatch[1] : '';
+                
+                questionDiv.innerHTML = `
+                    <div class="question-id">問題 ${item.question_id}</div>
+                    ${correctAnswer ? `<div class="correct-answer">正答: ${correctAnswer}</div>` : ''}
+                    <div class="explanation-content">
+                        ${formatExplanation(item.explanation)}
+                    </div>
+                    <div class="metadata">
+                        文字数: ${item.word_count} | 
+                        ステータス: ${item.status} | 
+                        更新日時: ${new Date(item.timestamp).toLocaleString('ja-JP')}
+                    </div>
+                `;
+                
+                container.appendChild(questionDiv);
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('total-questions').textContent = explanationsData.length;
+            document.getElementById('success-count').textContent = explanationsData.filter(q => q.status === 'success').length;
+            
+            const avgWordCount = Math.round(
+                explanationsData.reduce((sum, q) => sum + q.word_count, 0) / explanationsData.length
+            );
+            document.getElementById('avg-word-count').textContent = avgWordCount;
+        }
+
+        function filterQuestions(searchTerm) {
+            const questions = document.querySelectorAll('.question');
+            questions.forEach(question => {
+                const text = question.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    question.style.display = 'block';
+                } else {
+                    question.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

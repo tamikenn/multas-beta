@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MULTAs v3 - GPT-4o完全統合版</title>
+    <style>
+        /* 既存のスタイルをそのまま使用 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ===== ヘッダー ===== */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-badge {
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+            transition: all 0.3s ease;
+        }
+
+        .ai-badge.connecting {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+        }
+
+        .ai-badge.active {
+            background: linear-gradient(45deg, #00b894, #00a085);
+        }
+
+        .ai-badge.inactive {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .day-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .day-selector select {
+            padding: 6px 12px;
+            border: 2px solid #3498db;
+            border-radius: 20px;
+            background: white;
+            color: #2c3e50;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .stats-mini {
+            display: flex;
+            gap: 15px;
+            margin-top: 8px;
+        }
+
+        .stat-mini {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .stat-number {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        /* ===== メインモニター（出力エリア）===== */
+        .main-monitor {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .monitor-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            min-height: 100%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .monitor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .monitor-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: 2px solid #3498db;
+            background: white;
+            color: #3498db;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .action-btn.primary {
+            background: #3498db;
+            color: white;
+        }
+
+        /* ===== カテゴリ表示 ===== */
+        .categories-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .category-section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 15px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+
+        .category-section.medical_knowledge { border-left-color: #e74c3c; }
+        .category-section.technical_skills { border-left-color: #3498db; }
+        .category-section.patient_communication { border-left-color: #2ecc71; }
+        .category-section.team_collaboration { border-left-color: #f39c12; }
+        .category-section.ethics_professionalism { border-left-color: #9b59b6; }
+        .category-section.patient_information { border-left-color: #1abc9c; }
+        .category-section.community_medicine { border-left-color: #34495e; }
+        .category-section.personal_growth { border-left-color: #e67e22; }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .category-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .category-count {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .records-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .record-item {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .record-content {
+            color: #2c3e50;
+            line-height: 1.5;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .record-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #7f8c8d;
+        }
+
+        .confidence-badge {
+            background: linear-gradient(45deg, #00b894, #00a085);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .ai-badge-record {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 40px 20px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #95a5a6;
+            font-size: 16px;
+        }
+
+        /* ===== ボトム入力エリア（LINE風）===== */
+        .input-bottom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .input-textarea {
+            flex: 1;
+            min-height: 20px;
+            max-height: 100px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: none;
+            background: white;
+            transition: all 0.3s ease;
+            line-height: 1.4;
+        }
+
+        .input-textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.2);
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #00b894, #00a085);
+            color: white;
+            border: none;
+            border-radius: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);
+        }
+
+        .send-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== ポップアップレスポンス ===== */
+        .popup-response {
+            position: fixed;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: popupAppear 0.5s ease;
+            max-width: 200px;
+            text-align: center;
+        }
+
+        @keyframes popupAppear {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* ===== レスポンシブ対応 ===== */
+        @media (max-width: 768px) {
+            .header {
+                padding: 8px 15px;
+            }
+            
+            .main-monitor {
+                padding: 10px;
+            }
+            
+            .input-bottom {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <div class="header">
+        <div class="header-content">
+            <h1>
+                🏥 MULTAs v3 
+                <span class="ai-badge connecting" id="apiBadge">GPT-4o API</span>
+            </h1>
+            <div class="day-selector">
+                <select id="daySelect">
+                    <option value="day1">第1日目</option>
+                    <option value="day2">第2日目</option>
+                    <option value="day3">第3日目</option>
+                    <option value="day4">第4日目</option>
+                    <option value="day5">第5日目</option>
+                </select>
+            </div>
+        </div>
+        <div class="stats-mini">
+            <div class="stat-mini">
+                📝 <span class="stat-number" id="recordCount">0</span>件
+            </div>
+            <div class="stat-mini">
+                📊 <span class="stat-number" id="charCount">0</span>文字
+            </div>
+            <div class="stat-mini">
+                🎯 <span class="stat-number" id="aiAccuracy">--</span>% AI精度
+            </div>
+        </div>
+    </div>
+
+    <!-- メインモニター（出力エリア）-->
+    <div class="main-monitor">
+        <div class="monitor-content">
+            <div class="monitor-header">
+                <h2 class="monitor-title">
+                    📊 GPT-4o AI分析レポート
+                </h2>
+                <div class="report-actions">
+                    <button class="action-btn" id="endDayBtn">📅 終了</button>
+                    <button class="action-btn primary" id="generateReportBtn">📄 総合</button>
+                </div>
+            </div>
+
+            <div class="categories-grid" id="categoriesContainer">
+                <div class="empty-state">
+                    <h3>🌟 実習記録を開始しましょう</h3>
+                    <p>下のフォームに今日の体験を記録すると、GPT-4oが自動的に分析・分類してここに表示されます</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ボトム入力エリア（LINE風）-->
+    <div class="input-bottom">
+        <form class="input-container" id="recordForm">
+            <textarea 
+                id="recordInput" 
+                class="input-textarea" 
+                placeholder="今日の実習での体験や学びを記録..."
+                rows="1"
+                required
+            ></textarea>
+            <button type="submit" class="send-btn" id="submitBtn">
+                ➤
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // === 定数定義 ===
+        const CATEGORIES = {
+            medical_knowledge: {
+                title: '📖 医学知識・理論学習',
+                icon: '📖',
+                description: '病態、生理学、薬理学、疾患知識など'
+            },
+            technical_skills: {
+                title: '🛠️ 技術・手技・臨床スキル',
+                icon: '🛠️',
+                description: '医療技術、測定方法、診察手技など'
+            },
+            patient_communication: {
+                title: '🤝 患者コミュニケーション',
+                icon: '🤝',
+                description: '患者・家族との関わりや対話'
+            },
+            team_collaboration: {
+                title: '👥 他職種連携・チーム医療',
+                icon: '👥',
+                description: '看護師、薬剤師等との協働'
+            },
+            ethics_professionalism: {
+                title: '⚖️ 医療倫理・プロフェッショナリズム',
+                icon: '⚖️',
+                description: '倫理的配慮、責任感、職業意識'
+            },
+            patient_information: {
+                title: '📋 患者情報・診療プロセス',
+                icon: '📋',
+                description: '診療の流れ、カルテ、検査プロセス'
+            },
+            community_medicine: {
+                title: '🌍 地域医療・社会的影響',
+                icon: '🌍',
+                description: '医療アクセス、社会問題への理解'
+            },
+            personal_growth: {
+                title: '✨ 自身の成長・学習成果',
+                icon: '✨',
+                description: '自己の変化、学習の実感'
+            }
+        };
+
+        const RESPONSE_CHAINS = [
+            ["本日初投稿！", "いいね！", "GOOD", "その調子！", "great", "すごい！", "awesome", "まだまだ行ける", "nice day", "10回到達！", 
+             "いいね！", "amazing!", "これは…", "unstoppable", "絶好調", "fantastic", "ヤル気スゴイ", "fabulous", "さすが", "I feel good"],
+            
+            ["スタート！", "Good!", "Cool!", "Nice!", "Super!", "Great!", "Wow!", "Excellent!", "Perfect!", "Champion!", 
+             "Brilliant!", "Awesome!", "Fantastic!", "Incredible!", "Outstanding!", "Magnificent!", "Spectacular!", "Phenomenal!", "Legendary!", "Unstoppable!"],
+            
+            ["初回記録！", "いいよ！", "順調！", "好調！", "最高！", "素晴らしい", "完璧！", "やるね！", "凄い！", "10回達成", 
+             "頑張ってる", "素敵！", "見事！", "流石！", "絶好調", "快調！", "充実！", "満点！", "完璧", "頂点到達！"]
+        ];
+
+        // === グローバル変数 ===
+        let dailyRecords = {
+            day1: [], day2: [], day3: [], day4: [], day5: []
+        };
+        let currentDay = 'day1';
+        let totalSubmissions = 0;
+        let accuracySum = 0;
+        let accuracyCount = 0;
+
+        // === GAS API呼び出し関数（google.script.run使用）===
+        async function callGASAPI(action, data) {
+            return new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler((result) => {
+                        console.log('GAS API成功:', result);
+                        resolve(result);
+                    })
+                    .withFailureHandler((error) => {
+                        console.error('GAS APIエラー:', error);
+                        reject(error);
+                    })
+                    .processRequest({ action, ...data });
+            });
+        }
+
+        // === 接続テスト ===
+        async function testConnection() {
+            try {
+                console.log('GAS接続テスト開始...');
+                updateAPIBadge('connecting');
+                
+                const result = await callGASAPI('test');
+                console.log('接続テスト成功:', result);
+                updateAPIBadge('active');
+                return true;
+            } catch (error) {
+                console.error('接続テスト失敗:', error);
+                updateAPIBadge('inactive');
+                return false;
+            }
+        }
+
+        function updateAPIBadge(status) {
+            const badge = document.getElementById('apiBadge');
+            
+            // 既存のクラスをリセット
+            badge.className = 'ai-badge';
+            
+            switch (status) {
+                case 'connecting':
+                    badge.className += ' connecting';
+                    badge.textContent = 'GPT-4o 接続中';
+                    break;
+                case 'active':
+                    badge.className += ' active';
+                    badge.textContent = 'GPT-4o ACTIVE';
+                    break;
+                case 'inactive':
+                    badge.className += ' inactive';
+                    badge.textContent = 'GPT-4o ERROR';
+                    break;
+            }
+        }
+
+        // === UI更新関数 ===
+        function updateStats() {
+            const todayRecords = dailyRecords[currentDay];
+            const totalChars = todayRecords.reduce((sum, record) => sum + record.content.length, 0);
+            const avgAccuracy = accuracyCount > 0 ? Math.round(accuracySum / accuracyCount) : '--';
+
+            document.getElementById('recordCount').textContent = todayRecords.length;
+            document.getElementById('charCount').textContent = totalChars;
+            document.getElementById('aiAccuracy').textContent = avgAccuracy;
+        }
+
+        function showPopupResponse(count) {
+            const chainIndex = Math.floor(count / 20) % RESPONSE_CHAINS.length;
+            const responseIndex = (count - 1) % 20;
+            const message = RESPONSE_CHAINS[chainIndex][responseIndex];
+
+            const popup = document.createElement('div');
+            popup.className = 'popup-response';
+            popup.textContent = message;
+            document.body.appendChild(popup);
+
+            setTimeout(() => {
+                document.body.removeChild(popup);
+            }, 2000);
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoriesContainer');
+            const todayRecords = dailyRecords[currentDay];
+
+            if (todayRecords.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>🌟 実習記録を開始しましょう</h3>
+                        <p>下のフォームに今日の体験を記録すると、GPT-4oが自動的に分析・分類してここに表示されます</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // カテゴリ別にグループ化
+            const groupedRecords = {};
+            todayRecords.forEach(record => {
+                if (!groupedRecords[record.category]) {
+                    groupedRecords[record.category] = [];
+                }
+                groupedRecords[record.category].push(record);
+            });
+
+            let html = '';
+            Object.keys(CATEGORIES).forEach(categoryId => {
+                const category = CATEGORIES[categoryId];
+                const records = groupedRecords[categoryId] || [];
+                
+                if (records.length > 0) {
+                    html += `
+                        <div class="category-section ${categoryId}">
+                            <div class="category-header">
+                                <div class="category-title">
+                                    ${category.icon} ${category.title}
+                                </div>
+                                <div class="category-count">${records.length}件</div>
+                            </div>
+                            <div class="records-list">
+                                ${records.map(record => `
+                                    <div class="record-item">
+                                        <div class="record-content">${record.content}</div>
+                                        <div class="record-meta">
+                                            <span>${new Date(record.timestamp).toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})}</span>
+                                            <div>
+                                                <span class="confidence-badge">${record.confidence}%</span>
+                                                ${record.aiProcessed ? '<span class="ai-badge-record">GPT-4o</span>' : '<span class="ai-badge-record">KB</span>'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = html;
+        }
+
+        // === テキストエリア自動リサイズ ===
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+        }
+
+        // === イベントハンドラー ===
+        document.getElementById('recordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const input = document.getElementById('recordInput');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            const content = input.value.trim();
+            if (!content) return;
+
+            // UI状態を処理中に変更
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '⏳';
+
+            try {
+                console.log('GAS API分析要求:', content);
+                
+                // 分析中は一時的にバッジを更新
+                updateAPIBadge('connecting');
+                
+                // GAS APIで分類
+                const response = await callGASAPI('classify', { text: content });
+                const classification = response.result;
+                
+                console.log('分析結果:', classification);
+                
+                // 成功時はActiveに戻す
+                updateAPIBadge('active');
+                
+                // 記録を保存
+                const record = {
+                    id: Date.now(),
+                    content: content,
+                    category: classification.category,
+                    confidence: classification.confidence,
+                    reason: classification.reason,
+                    timestamp: classification.timestamp,
+                    aiProcessed: classification.aiProcessed
+                };
+
+                dailyRecords[currentDay].push(record);
+                totalSubmissions++;
+
+                // 精度統計更新
+                accuracySum += classification.confidence;
+                accuracyCount++;
+
+                // UI更新
+                updateStats();
+                renderCategories();
+                showPopupResponse(dailyRecords[currentDay].length);
+                
+                // フォームクリア
+                input.value = '';
+                autoResize(input);
+
+            } catch (error) {
+                console.error('分析エラー:', error);
+                updateAPIBadge('inactive'); // エラー時は赤に
+                alert('分析でエラーが発生しました: ' + error.message);
+            } finally {
+                // UI状態をリセット
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '➤';
+            }
+        });
+
+        // テキストエリアの自動リサイズ
+        document.getElementById('recordInput').addEventListener('input', function(e) {
+            autoResize(e.target);
+        });
+
+        // 日選択の変更
+        document.getElementById('daySelect').addEventListener('change', function(e) {
+            currentDay = e.target.value;
+            updateStats();
+            renderCategories();
+        });
+
+        // その他のボタン
+        document.getElementById('endDayBtn').addEventListener('click', function() {
+            const todayRecords = dailyRecords[currentDay];
+            if (todayRecords.length === 0) {
+                alert('記録がありません');
+                return;
+            }
+            alert(`${currentDay}の記録が保存されました（${todayRecords.length}件）`);
+        });
+
+        document.getElementById('generateReportBtn').addEventListener('click', function() {
+            const allRecords = Object.values(dailyRecords).flat();
+            if (allRecords.length === 0) {
+                alert('記録がありません');
+                return;
+            }
+
+            const completedDays = Object.keys(dailyRecords).filter(day => dailyRecords[day].length > 0).length;
+            
+            if (completedDays < 5) {
+                alert(`総合レポートは5日間すべて完了後に生成できます（現在: ${completedDays}/5日完了）`);
+                return;
+            }
+
+            alert('総合レポートを生成中...\n（プレゼン用・文書用・データ用の3形式で準備します）');
+        });
+
+        // === 初期化 ===
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            renderCategories();
+            
+            // 接続テストを実行
+            testConnection();
+        });
+    </script>
+</body>
+</html>
