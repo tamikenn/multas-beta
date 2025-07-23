@@ -921,6 +921,7 @@
         
         // === 医学実習12時計分類システム ===
         const CLOCK_CATEGORIES = {
+            0: { name: '分類不能', icon: '❓', vector: {x: 0, y: 0} },
             1: { name: '地域医療', icon: '🏘️', vector: {x: -0.5, y: 0.8} },
             2: { name: '医療倫理', icon: '⚖️', vector: {x: -0.3, y: -0.5} },
             3: { name: '医学知識', icon: '📚', vector: {x: 0.8, y: -0.5} },
@@ -941,6 +942,7 @@
 
         // === 12時計カテゴリの色定義 ===
         const AI_CATEGORIES = {
+            0: { name: '❓ 分類不能', color: '#b2bec3' },
             1: { name: '🏘️ 地域医療', color: '#ff6b6b' },
             2: { name: '⚖️ 医療倫理', color: '#ff9ff3' },
             3: { name: '📚 医学知識', color: '#54a0ff' },
@@ -1101,8 +1103,9 @@
 記録: "${recordText}"
 
 【タスク1: 12時計分類】
-以下の12カテゴリから最も適切なものを1つ選んでください：
+以下の13カテゴリから最も適切なものを1つ選んでください：
 
+0時: 分類不能（医学実習との関連が不明確、意図が読み取れない）
 1時: 地域医療（訪問診療、在宅医療、地域特性）
 2時: 医療倫理（倫理、法律、規範）
 3時: 医学知識（疾患、症候、基礎医学）
@@ -1115,6 +1118,8 @@
 10時: 施設連携（病院間連携、紹介）
 11時: 保健・福祉（介護、保健事業）
 12時: 統合的社会（社会医学の統合）
+
+※「空が青かった」のような記録で医学実習との関連が不明な場合は0時を選択
 
 【タスク2: 深度とベクトル座標】
 以下を独立して判定してください：
@@ -1132,7 +1137,7 @@ y軸（-1.0〜1.0）: -1=臨床（ベッドサイド） ← → +1=地域・社�
 
 回答形式:
 {
-  "clock_category": 数値(1-12),
+  "clock_category": 数値(0-12),
   "clock_reason": "分類理由",
   "depth": 数値(0-4),
   "depth_reason": "深度判定理由",
@@ -1165,12 +1170,18 @@ y軸（-1.0〜1.0）: -1=臨床（ベッドサイド） ← → +1=地域・社�
                 const result = JSON.parse(data.choices[0].message.content);
                 
                 // 整合性チェック
-                const expectedVector = CLOCK_CATEGORIES[result.clock_category].vector;
-                const deviation = {
-                    x: Math.abs(expectedVector.x - result.vector.x),
-                    y: Math.abs(expectedVector.y - result.vector.y)
-                };
-                const consistency_score = 100 - (deviation.x + deviation.y) * 50;
+                let consistency_score = 100;
+                if (result.clock_category === 0) {
+                    // 分類不能の場合は整合性チェックをスキップ
+                    consistency_score = 0; // 整合性は評価不能
+                } else {
+                    const expectedVector = CLOCK_CATEGORIES[result.clock_category].vector;
+                    const deviation = {
+                        x: Math.abs(expectedVector.x - result.vector.x),
+                        y: Math.abs(expectedVector.y - result.vector.y)
+                    };
+                    consistency_score = 100 - (deviation.x + deviation.y) * 50;
+                }
                 
                 return {
                     category: result.clock_category,
