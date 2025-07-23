@@ -445,40 +445,6 @@
             background: #7dd87d;
         }
 
-        .report-type-selector {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 10px;
-        }
-
-        .report-type-btn {
-            padding: 8px 20px;
-            border: 2px solid #ddd;
-            background: white;
-            color: #666;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 20px;
-        }
-
-        .report-type-btn:hover:not(:disabled) {
-            background: #f5f5f5;
-            transform: translateY(-1px);
-        }
-
-        .report-type-btn.active {
-            background: #4a9eff;
-            color: white;
-            border-color: #4a9eff;
-        }
-
-        .report-type-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
 
         /* === ボトム入力フォーム === */
         .bottom-input {
@@ -836,14 +802,6 @@
 
             <!-- モニター3用統計 -->
             <div id="stats-monitor3" class="stats-display" style="display: none;">
-                <div class="report-type-selector">
-                    <button class="report-type-btn active" onclick="selectReportType('daily')">
-                        Daily Report
-                    </button>
-                    <button class="report-type-btn" onclick="selectReportType('whole')" id="wholeReportBtn" disabled>
-                        Whole Report (5日分)
-                    </button>
-                </div>
                 <div class="report-actions">
                     <button class="btn-secondary" onclick="generateDailyReport()">
                         🤖 レポート生成
@@ -915,7 +873,6 @@
         let recordIdCounter = 0;
         let currentMonitor = 'monitor1';
         let currentDay = 1;  // 現在の日付（1-5またはpractice）
-        let currentReportType = 'daily';  // 現在のレポートタイプ
 
         // === 医学実習カテゴリ定義 ===
         const AI_CATEGORIES = {
@@ -1351,51 +1308,6 @@
             }
         }
 
-        // === Dailyレポート表示 ===
-        function showDailyReport() {
-            const reportContent = document.getElementById('dailyReport');
-            const dayRecords = getCurrentDayRecords();
-            
-            reportContent.innerHTML = `
-                <div class="report-content">
-                    <h4>📋 ${currentDay === 'practice' ? '練習用' : `${currentDay}日目`}の実習レポート</h4>
-                    <div class="empty-state">
-                        <div class="icon">📊</div>
-                        <p>${dayRecords.length > 0 ? 
-                            `${dayRecords.length}件の記録があります<br>「レポート生成」ボタンを押してレポートを作成してください` : 
-                            `記録を追加してから<br>「レポート生成」ボタンを押すと<br>その日の体験をまとめたレポートが自動生成されます`
-                        }</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        // === Wholeレポート表示 ===
-        function showWholeReport() {
-            const reportContent = document.getElementById('dailyReport');
-            reportContent.innerHTML = `
-                <div class="report-content">
-                    <h4>📈 5日間総合レポート</h4>
-                    <div class="whole-report-content">
-                        <p>5日間の実習体験を総合的に分析したレポートを生成します。</p>
-                        <button class="btn-secondary" onclick="generateWholeReport()">
-                            🤖 総合レポート生成
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // === 5日間総合レポート生成 ===
-        async function generateWholeReport() {
-            showStatus('🤖 5日間の総合レポートを生成中...', 'info');
-            
-            // TODO: AIを使って5日間分の記録を分析
-            
-            setTimeout(() => {
-                showStatus('🎆 5日間の総合レポートが完成しました！', 'success');
-            }, 2000);
-        }
 
         // === ステータス表示 ===
         function showStatus(message, type = 'info') {
@@ -1435,49 +1347,8 @@
             // 表示を更新
             updateAllViews();
             
-            // REPORTタブが表示されている場合は、レポート表示も更新
-            if (currentMonitor === 'monitor3' && currentReportType === 'daily') {
-                showDailyReport();
-            }
-            
-            // 5日分の記録があるかチェックし、Whole Reportボタンを有効化
-            checkWholeReportAvailability();
         }
 
-        // === レポートタイプ選択 ===
-        function selectReportType(type) {
-            currentReportType = type;
-            
-            // ボタンのアクティブ状態を更新
-            document.querySelectorAll('.report-type-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // レポート表示を更新
-            if (type === 'whole') {
-                showWholeReport();
-            } else {
-                showDailyReport();
-            }
-        }
-
-        // === 5日分の記録があるかチェック ===
-        function checkWholeReportAvailability() {
-            const daysWithRecords = new Set();
-            records.forEach(record => {
-                if (typeof record.day === 'number' && record.day >= 1 && record.day <= 5) {
-                    daysWithRecords.add(record.day);
-                }
-            });
-            
-            const wholeReportBtn = document.getElementById('wholeReportBtn');
-            if (daysWithRecords.size >= 5) {
-                wholeReportBtn.disabled = false;
-            } else {
-                wholeReportBtn.disabled = true;
-            }
-        }
 
         // === 初期化 ===
         document.addEventListener('DOMContentLoaded', function() {
