@@ -34,6 +34,7 @@
             text-align: center;
             color: white;
             flex-shrink: 0;
+            position: relative;
         }
 
         .header h1 {
@@ -49,24 +50,21 @@
 
         /* === 日付選択 === */
         .day-selector {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.95);
-            border-bottom: 1px solid #e0e0e0;
+            position: absolute;
+            top: 15px;
+            right: 20px;
         }
 
         .day-display {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 20px;
+            gap: 5px;
+            padding: 8px 16px;
             background: #ff6b6b;
             color: white;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            border-radius: 30px;
+            border-radius: 20px;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
@@ -81,36 +79,36 @@
         .day-dropdown {
             position: absolute;
             top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            margin-top: 10px;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            right: 0;
+            margin-top: 5px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             z-index: 1000;
             overflow: hidden;
             display: none;
+            white-space: nowrap;
         }
 
         .day-dropdown.active {
-            display: block;
+            display: flex;
+            flex-direction: row;
+            gap: 2px;
+            padding: 8px;
         }
 
         .day-option {
-            padding: 12px 30px;
+            padding: 6px 12px;
             cursor: pointer;
             transition: all 0.2s ease;
             font-weight: 500;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .day-option:last-child {
-            border-bottom: none;
+            font-size: 0.85rem;
+            color: white;
+            border-radius: 4px;
         }
 
         .day-option:hover {
-            background: #f5f5f5;
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .day-option.selected {
@@ -776,20 +774,19 @@
     <div class="header">
         <h1>🏥 MULTAs</h1>
         <p>Medical University Learning and Training Assessment system</p>
-    </div>
-
-    <!-- 日付選択 -->
-    <div class="day-selector">
-        <div class="day-display" onclick="toggleDayDropdown()" style="position: relative;">
-            <span id="currentDayLabel">1日目</span>
-            <span style="font-size: 0.8em;">▼</span>
+        <!-- 日付選択 -->
+        <div class="day-selector">
+            <div class="day-display" onclick="toggleDayDropdown()">
+                <span id="currentDayLabel">1日目</span>
+                <span style="font-size: 0.7em;">▼</span>
+            </div>
             <div class="day-dropdown" id="dayDropdown">
-                <div class="day-option" onclick="selectDay('practice')">練習用</div>
-                <div class="day-option selected" onclick="selectDay(1)">1日目</div>
-                <div class="day-option" onclick="selectDay(2)">2日目</div>
-                <div class="day-option" onclick="selectDay(3)">3日目</div>
-                <div class="day-option" onclick="selectDay(4)">4日目</div>
-                <div class="day-option" onclick="selectDay(5)">5日目</div>
+                <div class="day-option" onclick="selectDay('practice')">練習</div>
+                <div class="day-option selected" onclick="selectDay(1)">1日</div>
+                <div class="day-option" onclick="selectDay(2)">2日</div>
+                <div class="day-option" onclick="selectDay(3)">3日</div>
+                <div class="day-option" onclick="selectDay(4)">4日</div>
+                <div class="day-option" onclick="selectDay(5)">5日</div>
             </div>
         </div>
     </div>
@@ -826,10 +823,6 @@
                     <div class="stat-card">
                         <div class="stat-number" id="aiProcessed">0</div>
                         <div class="stat-label">AI済</div>
-                    </div>
-                    <div class="stat-card" style="background: #ff6b6b; color: white;">
-                        <div class="stat-number" id="currentDayDisplay" style="font-size: 1.2rem;">1日目</div>
-                        <div class="stat-label" style="color: rgba(255,255,255,0.9);">現在</div>
                     </div>
                 </div>
             </div>
@@ -1454,11 +1447,6 @@
             const dayLabel = document.getElementById('currentDayLabel');
             dayLabel.textContent = day === 'practice' ? '練習用' : `${day}日目`;
             
-            // 日付表示を更新
-            const dayDisplay = document.getElementById('currentDayDisplay');
-            if (dayDisplay) {
-                dayDisplay.textContent = day === 'practice' ? '練習用' : `${day}日目`;
-            }
             
             // ドロップダウンを閉じる
             document.getElementById('dayDropdown').classList.remove('active');
