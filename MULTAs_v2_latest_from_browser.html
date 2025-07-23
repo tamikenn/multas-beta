@@ -813,13 +813,8 @@
                         <div class="stat-number" id="userLevel">1</div>
                         <div class="stat-label">LV</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="userExp">0</div>
-                        <div class="stat-label">EXP</div>
-                    </div>
                     <div class="exp-bar-container">
                         <div class="exp-bar" id="expBar" style="width: 0%;"></div>
-                        <div class="exp-text" id="expText1">0 / 100</div>
                     </div>
                 </div>
             </div>
@@ -835,13 +830,8 @@
                         <div class="stat-number" id="userLevel2">1</div>
                         <div class="stat-label">LV</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="userExp2">0</div>
-                        <div class="stat-label">EXP</div>
-                    </div>
                     <div class="exp-bar-container">
                         <div class="exp-bar" id="expBar2" style="width: 0%;"></div>
-                        <div class="exp-text" id="expText2">0 / 100</div>
                     </div>
                 </div>
             </div>
@@ -1081,19 +1071,10 @@
             document.getElementById('userLevel').textContent = userLevel;
             document.getElementById('userLevel2').textContent = userLevel;
             
-            // 経験値更新
-            document.getElementById('userExp').textContent = userExp;
-            document.getElementById('userExp2').textContent = userExp;
-            
-            // 経験値バー更新
+            // 経験値バー更新（隠しパラメータとして動作）
             const expPercent = (userExp / EXP_TO_LEVEL_UP) * 100;
             document.getElementById('expBar').style.width = expPercent + '%';
             document.getElementById('expBar2').style.width = expPercent + '%';
-            
-            // 経験値テキスト更新
-            const expText = `${userExp} / ${EXP_TO_LEVEL_UP}`;
-            document.getElementById('expText1').textContent = expText;
-            document.getElementById('expText2').textContent = expText;
         }
 
         function updateAllViews() {
