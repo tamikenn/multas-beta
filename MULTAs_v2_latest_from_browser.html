@@ -203,22 +203,45 @@
         }
 
         .record-btn {
-            padding: 5px 9px;
-            border: none;
-            border-radius: 5px;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 1rem;
             transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .record-btn:hover {
+            background: #f5f5f5;
+            border-color: #999;
+            transform: translateY(-1px);
         }
 
         .edit-btn {
-            background: #ffc107;
-            color: #333;
+            color: #555;
         }
 
         .delete-btn {
-            background: #dc3545;
+            color: #666;
+        }
+
+        .save-btn {
+            background: #4a9eff;
             color: white;
+            border-color: #4a9eff;
+        }
+
+        .save-btn:hover {
+            background: #357abd;
+            border-color: #357abd;
+        }
+
+        .cancel-btn {
+            color: #888;
         }
 
         .record-text {
@@ -942,10 +965,10 @@
                         <div class="record-header">
                             <div class="record-timestamp">${timeStr}</div>
                             <div class="record-actions">
-                                <button class="record-btn edit-btn" onclick="editRecord(${record.id})">
+                                <button class="record-btn edit-btn" onclick="editRecord(${record.id})" title="編集">
                                     ✒️
                                 </button>
-                                <button class="record-btn delete-btn" onclick="deleteRecord(${record.id})">
+                                <button class="record-btn delete-btn" onclick="deleteRecord(${record.id})" title="削除">
                                     🗑️
                                 </button>
                             </div>
@@ -1063,8 +1086,8 @@
             textElement.innerHTML = `
                 <textarea class="edit-textarea">${record.originalText}</textarea>
                 <div class="edit-actions">
-                    <button class="record-btn save-btn" onclick="saveRecord(${recordId})">💾</button>
-                    <button class="record-btn cancel-btn" onclick="cancelEdit(${recordId})">❌</button>
+                    <button class="record-btn save-btn" onclick="saveRecord(${recordId})" title="保存">✓</button>
+                    <button class="record-btn cancel-btn" onclick="cancelEdit(${recordId})" title="キャンセル">×</button>
                 </div>
             `;
         }
