@@ -1034,16 +1034,6 @@
                         <div class="category-content">
                             ${categoryRecords.map(record => `
                                 <div class="category-item">
-                                    <div style="font-size: 0.75rem; color: #666; margin-bottom: 8px;">
-                                        ${record.timestamp.toLocaleString('ja-JP', {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })}
-                                        ${record.aiProcessed ? '🤖' : ''}
-                                        (${record.confidence}%)
-                                    </div>
                                     <div class="category-text">${record.originalText}</div>
                                 </div>
                             `).join('')}
