@@ -864,7 +864,7 @@
                 <div id="organizedView">
                     <div class="empty-state">
                         <div class="icon">🤖</div>
-                        <p>記録を追加すると<br>AI分析による8項目分類が表示されます</p>
+                        <p>記録を追加すると<br>AI分析による12時計分類が表示されます</p>
                     </div>
                 </div>
             </div>
@@ -913,21 +913,46 @@
         let recordIdCounter = 0;
         let currentMonitor = 'monitor1';
         let currentDay = 1;  // 現在の日付（1-5またはpractice）
+        
+        // === OpenAI API設定 ===
+        const OPENAI_API_KEY = 'YOUR_API_KEY_HERE'; // ここにAPIキーを設定
+        // テスト用にプロンプトから入力する場合は、以下のコメントを外してください
+        // const OPENAI_API_KEY = prompt('OpenAI APIキーを入力してください:');
+        
+        // === 医学実習12時計分類システム ===
+        const CLOCK_CATEGORIES = {
+            1: { name: '地域医療', icon: '🏘️', vector: {x: -0.5, y: 0.8} },
+            2: { name: '医療倫理', icon: '⚖️', vector: {x: -0.3, y: -0.5} },
+            3: { name: '医学知識', icon: '📚', vector: {x: 0.8, y: -0.5} },
+            4: { name: '診察・手技', icon: '🩺', vector: {x: 0.9, y: -0.7} },
+            5: { name: '患者との関わり', icon: '🤝', vector: {x: 0.5, y: -0.9} },
+            6: { name: '統合的臨床', icon: '🏥', vector: {x: 0, y: -0.8} },
+            7: { name: '多職種連携', icon: '👥', vector: {x: -0.5, y: -0.7} },
+            8: { name: 'コミュニケーション', icon: '💬', vector: {x: -0.8, y: -0.3} },
+            9: { name: '一般教養', icon: '📖', vector: {x: -0.9, y: 0.3} },
+            10: { name: '施設連携', icon: '🏥', vector: {x: -0.7, y: 0.7} },
+            11: { name: '保健・福祉', icon: '🏛️', vector: {x: -0.3, y: 0.9} },
+            12: { name: '統合的社会', icon: '🌍', vector: {x: 0, y: 0.9} }
+        };
         let userLevel = 1;
         let userExp = 0;
         const EXP_PER_RECORD = 20;
         const EXP_TO_LEVEL_UP = 100;
 
-        // === 医学実習カテゴリ定義 ===
+        // === 12時計カテゴリの色定義 ===
         const AI_CATEGORIES = {
-            medical_knowledge: { name: '👨‍⚕️ 医師のスキル', color: '#ff6b6b' },
-            patient_information: { name: '📋 患者情報', color: '#4ecdc4' },
-            patient_environment: { name: '🏠 患者の生活環境', color: '#45b7d1' },
-            team_collaboration: { name: '🤝 他職種連携', color: '#f9ca24' },
-            community_medicine: { name: '🌍 地域医療・コミュニティ', color: '#6c5ce7' },
-            ethics_philosophy: { name: '📚 医療倫理・哲学', color: '#a29bfe' },
-            personal_growth: { name: '✨ 自身の成長', color: '#fd79a8' },
-            other: { name: '📝 その他・複合的', color: '#636e72' }
+            1: { name: '🏘️ 地域医療', color: '#ff6b6b' },
+            2: { name: '⚖️ 医療倫理', color: '#ff9ff3' },
+            3: { name: '📚 医学知識', color: '#54a0ff' },
+            4: { name: '🩺 診察・手技', color: '#48dbfb' },
+            5: { name: '🤝 患者との関わり', color: '#1dd1a1' },
+            6: { name: '🏥 統合的臨床', color: '#10ac84' },
+            7: { name: '👥 多職種連携', color: '#feca57' },
+            8: { name: '💬 コミュニケーション', color: '#ff9ff3' },
+            9: { name: '📖 一般教養', color: '#dfe6e9' },
+            10: { name: '🏥 施設連携', color: '#a29bfe' },
+            11: { name: '🏛️ 保健・福祉', color: '#6c5ce7' },
+            12: { name: '🌍 統合的社会', color: '#fd79a8' }
         };
 
         // === 体験記録送信 ===
@@ -949,15 +974,23 @@
             submitLoading.style.display = 'inline-block';
 
             try {
-                // ローカル処理で即座に表示（v1モジュール）
+                // AI分類を実行
+                showStatus('🤖 AI分析中...', 'info');
+                const aiResult = await classifyWithAI(experienceText);
+                
+                // ローカル処理で即座に表示
                 const localRecord = {
                     id: ++recordIdCounter,
                     originalText: experienceText,
                     timestamp: new Date(),
                     day: currentDay, // 現在の日付を記録
-                    category: 'personal_growth', // デフォルト
-                    confidence: 75,
-                    aiProcessed: false
+                    category: aiResult.category,
+                    confidence: aiResult.confidence,
+                    aiProcessed: true,
+                    aiReason: aiResult.reason,
+                    depth: aiResult.depth,
+                    vector: aiResult.vector,
+                    consistency: aiResult.consistency
                 };
 
                 records.unshift(localRecord);
@@ -1060,6 +1093,107 @@
             updateExpDisplay();
         }
 
+        // === 12時計AI分類関数 ===
+        async function classifyWithAI(recordText) {
+            try {
+                const prompt = `医学生の実習記録を2つの独立した方法で分析してください。
+
+記録: "${recordText}"
+
+【タスク1: 12時計分類】
+以下の12カテゴリから最も適切なものを1つ選んでください：
+
+1時: 地域医療（訪問診療、在宅医療、地域特性）
+2時: 医療倫理（倫理、法律、規範）
+3時: 医学知識（疾患、症候、基礎医学）
+4時: 診察・手技（診察スキル、検査手技）
+5時: 患者との関わり（ベッドサイドケア）
+6時: 統合的臨床（臨床能力の統合）
+7時: 多職種連携（チーム医療、院内連携）
+8時: コミュニケーション（対人能力）
+9時: 一般教養（医学以外の知識）
+10時: 施設連携（病院間連携、紹介）
+11時: 保健・福祉（介護、保健事業）
+12時: 統合的社会（社会医学の統合）
+
+【タスク2: 深度とベクトル座標】
+以下を独立して判定してください：
+
+深度（0-4）:
+0: 知らない
+1: 知っている（名称レベル）
+2: 理解している（背景・因果関係）
+3: 説明できる（再現性は低い）
+4: 定着している（統合的レベル）
+
+座標:
+x軸（-1.0〜1.0）: -1=non-technical skill ← → +1=technical skill
+y軸（-1.0〜1.0）: -1=臨床（ベッドサイド） ← → +1=地域・社会
+
+回答形式:
+{
+  "clock_category": 数値(1-12),
+  "clock_reason": "分類理由",
+  "depth": 数値(0-4),
+  "depth_reason": "深度判定理由",
+  "vector": {
+    "x": 数値(-1.0〜1.0),
+    "y": 数値(-1.0〜1.0)
+  },
+  "vector_reason": "座標判定理由"
+}`;
+
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${OPENAI_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [{ role: 'user', content: prompt }],
+                        temperature: 0.3,
+                        response_format: { type: "json_object" }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('API request failed');
+                }
+
+                const data = await response.json();
+                const result = JSON.parse(data.choices[0].message.content);
+                
+                // 整合性チェック
+                const expectedVector = CLOCK_CATEGORIES[result.clock_category].vector;
+                const deviation = {
+                    x: Math.abs(expectedVector.x - result.vector.x),
+                    y: Math.abs(expectedVector.y - result.vector.y)
+                };
+                const consistency_score = 100 - (deviation.x + deviation.y) * 50;
+                
+                return {
+                    category: result.clock_category,
+                    confidence: Math.max(50, consistency_score),
+                    reason: result.clock_reason,
+                    depth: result.depth,
+                    vector: result.vector,
+                    consistency: consistency_score > 70
+                };
+            } catch (error) {
+                console.error('AI分類エラー:', error);
+                // フォールバック
+                return {
+                    category: 7,
+                    confidence: 50,
+                    reason: 'AI分類に失敗しました',
+                    depth: 1,
+                    vector: {x: 0, y: 0},
+                    consistency: false
+                };
+            }
+        }
+        
         // === 経験値表示更新 ===
         function updateExpDisplay() {
             // 記録回数更新
@@ -1150,7 +1284,7 @@
                 organizedView.innerHTML = `
                     <div class="empty-state">
                         <div class="icon">🤖</div>
-                        <p>記録を追加すると<br>AI分析による8項目分類が表示されます</p>
+                        <p>記録を追加すると<br>AI分析による12時計分類が表示されます</p>
                     </div>
                 `;
                 return;
@@ -1169,7 +1303,7 @@
             // HTML生成
             let html = '';
             for (const [categoryId, categoryRecords] of Object.entries(groupedRecords)) {
-                const category = AI_CATEGORIES[categoryId] || AI_CATEGORIES.other;
+                const category = AI_CATEGORIES[categoryId] || AI_CATEGORIES[7]; // デフォルトは自己省察
                 
                 html += `
                     <div class="category-section">
@@ -1300,7 +1434,7 @@
 
             // カテゴリ別詳細
             for (const [categoryId, categoryRecords] of Object.entries(categoryGroups)) {
-                const category = AI_CATEGORIES[categoryId] || AI_CATEGORIES.other;
+                const category = AI_CATEGORIES[categoryId] || AI_CATEGORIES[7]; // デフォルトは自己省察
                 
                 reportHtml += `
                     <div class="report-section">
