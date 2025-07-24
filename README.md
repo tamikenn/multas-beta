@@ -1,95 +1,111 @@
-# 🏥 MULTAs - 医学実習記録システム
+# 🏥 MULTAs v2 - 医学実習記録システム（12時計分類版）
 
 AI分類機能を搭載した医学生のための実習記録・レポート生成システム
 
 ## 🎯 プロジェクト概要
 
-MULTAs（Medical University Learning and Training Assistant System）は、医学生の臨床実習体験を効率的に記録・分類・レポート化するWebアプリケーションです。
+MULTAs（Medical University Learning and Training Assistant System）v2は、医学生の臨床実習体験を12時計分類システムで整理・可視化する革新的なWebアプリケーションです。
 
-### 主な機能
+### ✨ v2の新機能
 
-- 📝 **簡単記録**: 実習体験をその場で素早く記録
-- 🤖 **AI自動分類**: 8つの医学教育カテゴリに自動分類
-- 📊 **体験整理**: カテゴリ別に学習内容を可視化
-- 📄 **レポート生成**: 日次・週次レポートを自動生成
+- 🕐 **12時計分類システム**: 医学教育を時計の文字盤にマッピング
+- 🎮 **レベル・経験値システム**: ゲーミフィケーションで学習意欲向上
+- 📅 **5日間記録管理**: Day 1〜5の実習記録を個別管理
+- 🌙 **分類不能カテゴリ（0時）**: どこにも当てはまらない貴重な学び
 
-## 🚀 現在の開発状況
-
-- ✅ **v1完成**: 基本的な記録・表示機能
-- 🔄 **v2開発中**: AI分類機能の統合
-- 📋 **Phase 1**: モニター1,2実装済み、モニター3開発中
-
-## 📁 プロジェクト構成
+## 🕐 12時計分類システム
 
 ```
-MULTAs-medical-training/
-├── MULTAs_v2_implementation_phase1.html   # メインアプリケーション
-├── MULTAs_v2_architecture_design.md       # システム設計書
-├── MULTAs_simple_AI_implementation.gs     # Google Apps Script (AI処理)
-├── AI_integration_code_snippet.js         # AI統合用コード
-└── README.md                              # このファイル
+12時 ┌─────────────┐ 1時
+    │  予防・健康  │  病態・診断
+11時 │             │ 2時
+EBM  │    🕐      │  治療・ケア
+研究 │             │ 3時
+10時 │             │  手技・技術
+自己 │             │ 4時
+学習 └─────────────┘ コミュニケーション
+ 9時  8時  7時  6時  5時
+     社会 倫理 チーム 患者問題
+     制度 態度 医療  解決
 ```
 
-## 🛠️ 技術スタック
+### カテゴリー詳細
+
+- **0時**: 分類不能 - どのカテゴリーにも当てはまらない記録
+- **1時**: 病態・診断 - 病気の仕組みや診断プロセス
+- **2時**: 治療・ケア - 治療方法や患者ケア
+- **3時**: 手技・技術 - 医療技術や手技の習得
+- **4時**: コミュニケーション - 患者・家族との対話
+- **5時**: 患者への問題解決 - 総合的な問題解決能力
+- **6時**: チーム医療 - 多職種連携
+- **7時**: 倫理・態度 - 医療倫理とプロフェッショナリズム
+- **8時**: 社会・制度 - 医療制度の理解
+- **9時**: 自己学習 - 自己研鑽と振り返り
+- **10時**: EBM・研究 - 科学的根拠に基づく医療
+- **11時**: 予防・健康 - 予防医学と健康増進
+
+## 🚀 アクセス方法
+
+### GitHub Pages（推奨）
+https://tamikenn.github.io/multas-beta/
+
+### ローカル実行
+```bash
+git clone https://github.com/tamikenn/multas-beta.git
+cd multas-beta
+open index.html
+```
+
+## 🛠️ 技術仕様
 
 - **フロントエンド**: HTML5, CSS3, Vanilla JavaScript
-- **バックエンド**: Google Apps Script
-- **AI**: OpenAI GPT-4o-mini API
-- **データストレージ**: LocalStorage → Google Sheets（予定）
+- **データ保存**: LocalStorage（ブラウザ内保存）
+- **AI統合準備**: Google Apps Script / OpenAI API
+- **デザイン**: レスポンシブ対応、紫色グラデーション
 
-## 🏃‍♂️ クイックスタート
+## 📊 レベルシステム
 
-### ローカルで確認
-```bash
-# リポジトリをクローン
-git clone https://github.com/[your-username]/MULTAs-medical-training.git
+- 記録1件 = 10 EXP
+- レベル計算式: `Level = floor(sqrt(EXP / 50)) + 1`
+- 進捗バーで次のレベルまでの経験値を表示
 
-# ファイルを開く
-open MULTAs_v2_implementation_phase1.html
-```
+## 🔧 AI統合について
 
-### Google Apps Scriptでデプロイ
-1. Google Apps Scriptプロジェクトを作成
-2. `MULTAs_simple_AI_implementation.gs`の内容をコピー
-3. OpenAI APIキーを設定
-4. Webアプリとしてデプロイ
+### 準備済みファイル
+- `MULTAs_simple_AI_implementation.gs` - GAS実装
+- `code_gas_fixed.gs` - CORS対策版
+- `AI_integration_code_snippet.js` - フロントエンド統合
 
-## 📊 8つの医学実習カテゴリ
+### 実装方法
+1. Google Apps Scriptプロジェクト作成
+2. OpenAI APIキー設定
+3. Webアプリとしてデプロイ
+4. フロントエンドからAPI呼び出し
 
-1. 📚 **医学知識・理論** - 病態、症状、治療法など
-2. 🔧 **技術・手技** - 測定、検査、医療技術など
-3. 💬 **患者コミュニケーション** - 患者・家族との対話
-4. 👥 **チーム医療** - 他職種との連携
-5. ⚖️ **倫理・プロフェッショナリズム** - 医療倫理
-6. 🧠 **臨床推論** - 診断プロセス
-7. 🪞 **自己省察** - 学習の振り返り
-8. 🏥 **医療システム理解** - 制度・仕組み
+## 📱 対応環境
 
-## 🔄 開発ロードマップ
-
-- [x] v1: 基本記録機能
-- [x] v2 Phase 1: AI分類とモニター切り替え
-- [ ] v2 Phase 2: 日次レポート生成
-- [ ] v2 Phase 3: 5日間総合レポート
-- [ ] v3: マルチユーザー対応
+- ✅ Chrome, Safari, Firefox, Edge
+- ✅ スマートフォン・タブレット対応
+- ✅ オフライン動作（LocalStorage使用）
 
 ## 🤝 貢献方法
 
 1. このリポジトリをフォーク
-2. 機能ブランチを作成 (`git checkout -b feature/AmazingFeature`)
-3. 変更をコミット (`git commit -m '✨ Add AmazingFeature'`)
-4. ブランチにプッシュ (`git push origin feature/AmazingFeature`)
-5. プルリクエストを作成
+2. 機能ブランチを作成 (`git checkout -b feature/新機能`)
+3. 変更をコミット (`git commit -m '✨ 新機能追加'`)
+4. プルリクエストを作成
 
 ## 📝 ライセンス
 
-このプロジェクトはMITライセンスのもとで公開されています。
+MITライセンス
 
-## 👨‍💻 開発者
+## 🔄 更新履歴
 
-- 開発サポート: Claude (Anthropic)
-- プロジェクトオーナー: [Your Name]
+- 2025/07/25: v2 mainブランチに統合、GitHub Pages公開
+- 2025/07/24: 12時計分類システム実装
+- 2025/07/24: 5時カテゴリを「患者への問題解決」に変更
+- 2025/07/23: MULTAs v2開発開始
 
 ---
 
-**最終更新**: 2025年7月23日
+**開発**: tamikenn with Claude (Anthropic)
